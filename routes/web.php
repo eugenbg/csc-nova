@@ -13,6 +13,9 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', 'App\Http\Controllers\HomeController@home');
+Route::post('/subscribe', 'App\Http\Controllers\SubscribeController@subscribe');
+Route::post('/search', 'App\Http\Controllers\SearchController@search');
+Route::get('/search', 'App\Http\Controllers\SearchController@search');
+
+Route::fallback(['as' => 'slug', 'uses' => 'App\Http\Controllers\Router@routeMatch']);
