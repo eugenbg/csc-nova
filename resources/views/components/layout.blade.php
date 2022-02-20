@@ -19,20 +19,7 @@
     </head>
     <body>
 
-    <!-- Yandex.Metrika counter -->
-    <script type="text/javascript" >
-        (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-            m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
-        (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
 
-        ym(84037354, "init", {
-            clickmap:true,
-            trackLinks:true,
-            accurateTrackBounce:true
-        });
-    </script>
-    <noscript><div><img src="https://mc.yandex.ru/watch/84037354" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
-    <!-- /Yandex.Metrika counter -->
 
     <div class="site-mobile-menu site-navbar-target">
         <div class="site-mobile-menu-header">
@@ -50,7 +37,7 @@
                     {{--<a href="#" class="d-inline-flex align-items-center"><span class="icon-lock mr-2"></span><span>Sign In</span></a>--}}
                 </div>
                 <div class="col-3 col-md-6 col-lg-6 text-lg-center logo">
-                    <a href="/">VmWare Walk Throughs<span class="text-primary">.</span> </a>
+                    <a href="/">CSC Scholarships<span class="text-primary">.</span> </a>
                 </div>
                 <div class="col-9 col-md-6 col-lg-3 text-right top-menu">
                     <div class="d-inline-flex align-items-center">

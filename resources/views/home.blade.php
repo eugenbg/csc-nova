@@ -1,7 +1,42 @@
 <x-layout>
-    @section('title', 'VmWare Walk Throughs')
+    @section('title', 'China Scholarship Council (CSC)')
     <div class="section-latest">
         <div class="container">
+            <div class="row gutter-v1 align-items-stretch">
+                <div class="col-12">
+                    <h1 class="section-title">China Scholarship Council (CSC)</h1>
+                </div>
+                <div class="col-md-9 pr-md-5">
+                    <div class="row mb-5">
+                        {!! $mainPost->content !!}
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <x-subscribe-component/>
+                </div>
+            </div>
+
+            <div class="row">
+                <h1 style="text-align: center">Universities Offering CSC Scholarships</h1>
+            </div>
+
+            <div class="row">
+
+                @foreach ($unis as $uni)
+                    <div class="col-4 p-1">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title"><strong>{{$uni->abbr}}</strong> - {{$uni->name}}</h5>
+                            </div>
+                            <div class="card-body">
+                                <a href="{{$uni->link}}">{{$uni->name}} scholarships</a>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+
             <div class="row gutter-v1 align-items-stretch">
                 <div class="col-12">
                     <h2 class="section-title">Latest blog posts</h2>
@@ -29,30 +64,6 @@
                         </div>
                         @endforeach
                     </div>
-
-                    <div class="row">
-                        <div class="col-12">
-                            <h2 class="section-title">Vmware Problems With Solutions</h2>
-                        </div>
-                        @foreach($smallPosts as $smallPost)
-                        <div class="col-12">
-                            <div class="post-entry horizontal d-flex">
-                                <div class="text">
-                                    <h2><a href="{{$smallPost->slug}}">{{$smallPost->keyword}}</a></h2>
-                                    <div class="meta">
-                                        <span>{{$smallPost->createdAtFormatted()}}</span>
-                                    </div>
-                                    <p>{{$smallPost->getExcerpt(15)}}</p>
-
-                                </div>
-                            </div>
-                        </div>
-                        @endforeach
-                    </div>
-                    <h3><a href="/vmware?page=2">More VmWare Notes</a></h3>
-                </div>
-                <div class="col-md-3">
-                    <x-subscribe-component/>
                 </div>
             </div>
         </div>

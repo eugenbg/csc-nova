@@ -2,12 +2,12 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Post;
+use App\Models\Category;
 use App\Models\ChinaUniversity;
 use App\Models\ContentChunk;
 use App\Services\UniquenessTestingService;
 use Illuminate\Console\Command;
-use Symfony\Component\DomCrawler\Crawler;
+use OptimistDigital\MenuBuilder\Models\MenuItem;
 
 class Test extends Command
 {
@@ -16,7 +16,7 @@ class Test extends Command
      *
      * @var string
      */
-    protected $signature = 'test {uniId} {pieceNumber}';
+    protected $signature = 'test:test';
 
     /**
      * The console command description.
@@ -47,13 +47,24 @@ class Test extends Command
      */
     public function handle()
     {
-        $uniId = $this->argument('uniId');
-        $pieceNumber = $this->argument('pieceNumber');
-        $this->compareContentChunks($pieceNumber);
-/*        if($uniId) {
-            $this->comparePiecesOfOneArticleToAllOthers($uniId, $pieceNumber);
+        $cats = Category::all();
+        $i = 1;
+        foreach ($cats as $cat) {
+            if($cat->show_in_menu) {
+                $model = new MenuItem();
+                $model->menu_id = 1;
+                $model->name = $cat->title;
+                $model->value = $cat->slug;
+                $model->locale = 'en_US';
+                $model->class = 'OptimistDigital\MenuBuilder\MenuItemTypes\MenuItemStaticURLType';
+                $model->target = '_self';
+                $model->enabled = 1;
+                $model->parent_id = 12;
+                $model->order = $i;
+                $model->save();
+                $i++;
+            }
         }
-        $this->compareAllUniAgainstAllUnis(1);*/
     }
 
     private function comparePiecesOfOneArticleToAllOthers($uniId, $pieceNumber = 1)

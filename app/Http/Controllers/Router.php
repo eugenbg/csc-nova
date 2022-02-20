@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ChinaUniversity;
 use App\Models\Page;
 use App\Models\Post;
 use App\Models\Category;
@@ -27,6 +28,10 @@ class Router {
             case Post::class:
                 $controller = resolve(PostController::class);
                 return $controller->getPost($slugModel->object_id, $request);
+                break;
+            case ChinaUniversity::class:
+                $controller = resolve(ChinaUniversityController::class);
+                return $controller->getUni($slugModel->object_id, $request);
                 break;
             case Category::class:
                 $controller = resolve(CategoryController::class);

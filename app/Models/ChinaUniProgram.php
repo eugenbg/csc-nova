@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Base\SluggableModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
@@ -31,7 +30,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|ChinaUniProgram whereUniversityId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ChinaUniProgram whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ChinaUniProgram whereYears($value)
- * @mixin \Eloquent
  */
 class ChinaUniProgram extends SluggableModel
 {

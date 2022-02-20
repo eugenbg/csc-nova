@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Base\SluggableModel;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Collection;
@@ -22,7 +21,6 @@ use Illuminate\Support\Collection;
  * @method static \Illuminate\Database\Eloquent\Builder|ChinaUniversity whereSlug($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ChinaUniversity whereTitle($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ChinaUniversity whereUpdatedAt($value)
- * @mixin \Eloquent
  * @method static \Illuminate\Database\Eloquent\Builder|ChinaUniversity whereLink($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ChinaUniversity whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ChinaUniversity whereRegion($value)
