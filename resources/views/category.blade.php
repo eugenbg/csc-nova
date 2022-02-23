@@ -1,3 +1,4 @@
+e
 <x-layout>
     @section('title', $category->title)
     <div class="section-latest">
@@ -22,7 +23,6 @@
                                             <span>{{$post->minutesNeededToRead()}}</span>
                                         </div>
                                         <p>{{$post->getExcerpt()}}</p>
-
                                     </div>
                                 </div>
                             </div>

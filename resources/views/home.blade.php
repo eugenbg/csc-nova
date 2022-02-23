@@ -27,6 +27,7 @@
                         <div class="card">
                             <div class="card-body">
                                 <h5 class="card-title"><strong>{{$uni->abbr}}</strong> - {{$uni->name}}</h5>
+                                <span>Region: {{$uni->getRegion()}}</span>
                             </div>
                             <div class="card-body">
                                 <a href="{{$uni->link}}">{{$uni->name}} scholarships</a>

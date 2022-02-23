@@ -28,9 +28,10 @@
                                     <div class="card-body">
                                         <h5 class="card-title"><strong>{{$link->linkedUni->abbr}}</strong>
                                             - {{$link->linkedUni->name}}</h5>
+                                        <span>Region: {{$link->linkedUni->getRegion()}}</span>
                                     </div>
                                     <div class="card-body">
-                                        <a href="{{$link->linkedUni->link}}">CSC Guide for {{$link->linkedUni->name}}</a>
+                                        <a href="{{$link->linkedUni->link}}">{{$link->linkedUni->name}} Scholarships</a>
                                     </div>
                                 </div>
                             </div>

@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Base\SluggableModel;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -20,7 +19,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @property-read int|null $children_count
  * @property-read string $link
  * @property-read Page|null $parent
- * @method static \Database\Factories\PageFactory factory(...$parameters)
  * @method static \Illuminate\Database\Eloquent\Builder|Page newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|Page newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|Page query()
@@ -31,7 +29,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @method static \Illuminate\Database\Eloquent\Builder|Page whereSlug($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Page whereTitle($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Page whereUpdatedAt($value)
- * @mixin \Eloquent
  */
 class Page extends SluggableModel
 {

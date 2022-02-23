@@ -14,3 +14,5 @@ yarn-error.log
 /.idea
 /.vscode
 dump.sql
+public/images
+public/blog-images

@@ -16,8 +16,14 @@ class ChinaUniversityController
 
         $campusImages = [];
         $dormImages = [];
+        $missFirstCampusPhoto = true;
         foreach ($uni->images as $image) {
-            if($image->type == ChinaUniImage::TYPE_CAMPUS) {
+            if($image->type == ChinaUniImage::TYPE_CAMPUS && $missFirstCampusPhoto) {
+                $missFirstCampusPhoto = false;
+                continue;
+            }
+
+            if($image->type == ChinaUniImage::TYPE_CAMPUS && !$missFirstCampusPhoto) {
                 $campusImages[] = $image;
             }
             if($image->type == ChinaUniImage::TYPE_DORM) {
@@ -26,7 +32,6 @@ class ChinaUniversityController
         }
 
         $unique = $uni->segment == 'unique';
-        $view = $unique ? 'china-uni-unique' : 'china-uni-flat';
 
         if($unique) {
             $content = $uni->generated_html;
@@ -39,7 +44,7 @@ class ChinaUniversityController
             ->with(['linkedUni', 'linkedUni.image'])
             ->get();
 
-        return view($view, [
+        return view('china-uni-unique', [
             'content' => $content,
             'uni' => $uni,
             'links' => $links,

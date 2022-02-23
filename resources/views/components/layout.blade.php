@@ -15,6 +15,8 @@
         <link rel="stylesheet" href="/fonts/flaticon/font/flaticon.css">
         <link rel="stylesheet" href="/css/aos.css">
         <link rel="stylesheet" href="/css/style.css">
+        <script src="/js/jquery-3.4.1.min.js"></script>
+        <script src="/js/owl.carousel.min.js"></script>
 
     </head>
     <body>
@@ -87,35 +89,21 @@
                         <p>Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved</p>
 
                         <div class="d-block">
-                            <a href="/disclaimers" class="m-2">Disclaimers</a>/
-                            <a href="/privacy-policy" class="m-2">Privacy Policy</a>/
-                            <a href="/about-us" class="m-2">About Us</a>
+                            <a href="/privacy-policy" class="m-2">Privacy Policy</a>
+                            <a href="/contact-us" class="m-2">Contact Us</a>
                         </div>
                     </div>
-
                 </div>
-
-
             </div>
         </div>
 
-        <div id="overlayer"></div>
-        <div class="loader">
-            <div class="spinner-border" role="status">
-                <span class="sr-only">Loading...</span>
-            </div>
-        </div>
-
-        <script src="/js/jquery-3.4.1.min.js"></script>
         <script src="/js/popper.min.js"></script>
         <script src="/js/bootstrap.min.js"></script>
-        <script src="/js/owl.carousel.min.js"></script>
         <script src="/js/aos.js"></script>
         <script src="/js/jquery.animateNumber.min.js"></script>
         <script src="/js/jquery.waypoints.min.js"></script>
         <script src="/js/jquery.fancybox.min.js"></script>
         <script src="/js/aos.js"></script>
         <script src="/js/custom.js"></script>
-
     </body>
 </html>

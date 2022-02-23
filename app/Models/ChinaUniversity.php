@@ -121,4 +121,14 @@ class ChinaUniversity extends SluggableModel
         return $this->hasMany(ChinaUniLink::class, 'uni_id', 'id');
     }
 
+    public function getRegion()
+    {
+        $exploded = explode('--', $this->region);
+        if(!isset($exploded[1]) || $exploded[0] === $exploded[1]) {
+            return $exploded[0];
+        }
+
+        return "{$exploded[0]}, $exploded[1]";
+    }
+
 }

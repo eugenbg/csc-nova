@@ -40,7 +40,7 @@ class Category extends SluggableModel
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function articles(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function posts(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(Post::class)->published();
     }
