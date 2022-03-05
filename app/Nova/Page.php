@@ -4,19 +4,18 @@ namespace App\Nova;
 
 use Illuminate\Http\Request;
 use Laravel\Nova\Fields\ID;
-use Laravel\Nova\Fields\Select;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use NumaxLab\NovaCKEditor5Classic\CKEditor5Classic;
 
-class Post extends Resource
+class Page extends Resource
 {
     /**
      * The model the resource corresponds to.
      *
      * @var string
      */
-    public static $model = \App\Models\Post::class;
+    public static $model = \App\Models\Page::class;
 
     /**
      * The single value that should be used to represent the resource when being displayed.

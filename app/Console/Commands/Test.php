@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Category;
 use App\Models\ChinaUniversity;
 use App\Models\ContentChunk;
+use App\Models\Page;
 use App\Services\UniquenessTestingService;
 use Illuminate\Console\Command;
 use OptimistDigital\MenuBuilder\Models\MenuItem;
@@ -47,24 +48,21 @@ class Test extends Command
      */
     public function handle()
     {
-        $cats = Category::all();
-        $i = 1;
-        foreach ($cats as $cat) {
-            if($cat->show_in_menu) {
-                $model = new MenuItem();
-                $model->menu_id = 1;
-                $model->name = $cat->title;
-                $model->value = $cat->slug;
-                $model->locale = 'en_US';
-                $model->class = 'OptimistDigital\MenuBuilder\MenuItemTypes\MenuItemStaticURLType';
-                $model->target = '_self';
-                $model->enabled = 1;
-                $model->parent_id = 12;
-                $model->order = $i;
-                $model->save();
-                $i++;
+        $page = Page::query()->find(20);
+        $page->content;
+
+        $unis = ChinaUniversity::all();
+        foreach ($unis as $uni) {
+            if(stripos($page->content, $uni->name)) {
+                $page->content = str_ireplace(
+                    $uni->name,
+                    sprintf('<a href="/%s" target="_blank">%s</a>', $uni->slug, $uni->name),
+                    $page->content
+                );
             }
         }
+
+        $page->save();
     }
 
     private function comparePiecesOfOneArticleToAllOthers($uniId, $pieceNumber = 1)
