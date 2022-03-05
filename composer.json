@@ -12,6 +12,7 @@
         "laravel/nova": "*",
         "laravel/sanctum": "^2.11",
         "laravel/tinker": "^2.5",
+        "numaxlab/nova-ckeditor5-classic": "^1.1",
         "optimistdigital/nova-menu-builder": "^6.1"
     },
     "require-dev": {

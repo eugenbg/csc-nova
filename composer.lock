@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8ca95712b39846f9a41bb79939346a12",
+    "content-hash": "1d5d77751382d409e1914a712a924e29",
     "packages": [
         {
             "name": "asm89/stack-cors",
@@ -2584,6 +2584,49 @@
                 "php"
             ],
             "time": "2021-11-30T19:35:32+00:00"
+        },
+        {
+            "name": "numaxlab/nova-ckeditor5-classic",
+            "version": "1.1.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/numaxlab/nova-ckeditor5-classic.git",
+                "reference": "012696fc66860667e35e78947289d8684f2629ce"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/numaxlab/nova-ckeditor5-classic/zipball/012696fc66860667e35e78947289d8684f2629ce",
+                "reference": "012696fc66860667e35e78947289d8684f2629ce",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.1.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "NumaxLab\\NovaCKEditor5Classic\\FieldServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "NumaxLab\\NovaCKEditor5Classic\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "A Laravel Nova CKEditor5 Classic Field.",
+            "keywords": [
+                "ckeditor5",
+                "laravel",
+                "nova",
+                "wysiwyg"
+            ],
+            "time": "2020-11-12T12:40:30+00:00"
         },
         {
             "name": "opis/closure",
