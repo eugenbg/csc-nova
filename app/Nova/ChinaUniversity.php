@@ -47,7 +47,8 @@ class ChinaUniversity extends Resource
             Text::make(__('Name'), 'name')->sortable(),
             CKEditor5Classic::make(__('HTML'), 'generated_html')
                 ->showOnDetail(true)
-                ->showOnIndex(false)
+                ->showOnIndex(false),
+            Text::make(__('Slug'), 'slug'),
         ];
     }
 

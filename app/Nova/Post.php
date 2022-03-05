@@ -46,8 +46,8 @@ class Post extends Resource
             Text::make(__('Title'), 'title'),
             CKEditor5Classic::make(__('Content'), 'content')
                 ->showOnDetail(true)
-                ->showOnIndex(false)
-
+                ->showOnIndex(false),
+            Text::make(__('Slug'), 'slug'),
         ];
     }
 

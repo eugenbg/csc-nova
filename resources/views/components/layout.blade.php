@@ -18,6 +18,8 @@
         <script src="/js/jquery-3.4.1.min.js"></script>
         <script src="/js/owl.carousel.min.js"></script>
 
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7651212198918174"
+                crossorigin="anonymous"></script>
     </head>
     <body>
 
