@@ -1,4 +1,3 @@
-e
 <x-layout>
     @section('title', $category->title)
     <div class="section-latest">
