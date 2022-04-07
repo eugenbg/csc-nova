@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands;
+namespace App\Console\Commands\China;
 
 use App\Models\ChinaUniversity;
 use App\Models\ContentChunk;

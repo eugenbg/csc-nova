@@ -1,24 +1,20 @@
 <?php
 
-namespace App\Console\Commands;
+namespace App\Console\Commands\China;
 
-use App\Models\Category;
 use App\Models\ChinaUniversity;
-use App\Models\ContentChunk;
-use App\Models\Page;
-use App\Services\HeadingGenerationService;
-use App\Services\UniquenessTestingService;
+use App\Models\Spell;
+use App\Services\TextGenerationService;
 use Illuminate\Console\Command;
-use OptimistDigital\MenuBuilder\Models\MenuItem;
 
-class Test extends Command
+class AddChinaUniAbbreviations extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'test:test';
+    protected $signature = 'abbr';
 
     /**
      * The console command description.
@@ -26,11 +22,6 @@ class Test extends Command
      * @var string
      */
     protected $description = 'Command description';
-
-    /**
-     * @var int
-     */
-    private $i;
 
     /**
      * Create a new command instance.
@@ -49,13 +40,13 @@ class Test extends Command
      */
     public function handle()
     {
-        $piece = \App\Models\GeneratedPiece::query()->find(25);
-
-
-
-        /** @var HeadingGenerationService $s */
-        $s = resolve(HeadingGenerationService::class);
-        $s->generateHeading($piece);
+        $spell = Spell::query()->find(7);
+        $collection = ChinaUniversity::get();
+        foreach ($collection as $uni) {
+            $name = rtrim(ltrim($uni->name));
+            $result = TextGenerationService::generate($name, $spell);
+            $uni->abbr = str_replace(')', '', rtrim(ltrim($result[0])));
+            $uni->save();
+        }
     }
-
 }

@@ -2,19 +2,20 @@
 
 namespace App\Console\Commands;
 
-use App\Models\ChinaUniversity;
+use App\Models\GeneratedPiece;
+use App\Models\Keyword;
 use App\Models\Spell;
 use App\Services\TextGenerationService;
 use Illuminate\Console\Command;
 
-class AddChinaUniAbbreviations extends Command
+class RewritePieces extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'abbr';
+    protected $signature = 'rewrite:pieces {keyword?}';
 
     /**
      * The console command description.
@@ -40,13 +41,18 @@ class AddChinaUniAbbreviations extends Command
      */
     public function handle()
     {
-        $spell = Spell::query()->find(7);
-        $collection = ChinaUniversity::get();
-        foreach ($collection as $uni) {
-            $name = rtrim(ltrim($uni->name));
-            $abbr = str_replace(')', '', rtrim(ltrim(TextGenerationService::generate($name, $spell))));
-            $uni->abbr = $abbr;
-            $uni->save();
+        $keywordId = $this->argument('keyword');
+
+        $builder = Keyword::query()
+            ->has('pieces')
+            ->limit(1);
+
+        if($keywordId) {
+            $builder->whereId($keywordId);
+        }
+
+        foreach ($builder->get() as $keyword) {
+            $this->rewritePieces($keyword);
         }
     }
 }

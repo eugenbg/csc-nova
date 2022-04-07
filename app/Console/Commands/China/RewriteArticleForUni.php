@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands;
+namespace App\Console\Commands\China;
 
 use App\Models\Post;
 use App\Models\ChinaUniversity;
@@ -86,7 +86,7 @@ class RewriteArticleForUni extends Command
             $paragraph = str_replace(["-\r\n", "-\n"], "-", $paragraph);
             $paragraph = ltrim(rtrim($paragraph));
             $rewritten = TextGenerationService::generate($paragraph, $spell);
-            $rewrittenArticle[$h2Html[$key]] = $rewritten;
+            $rewrittenArticle[$h2Html[$key]] = $rewritten[0];
         }
 
         $uni->generated = json_encode($rewrittenArticle);
