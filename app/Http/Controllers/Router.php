@@ -34,9 +34,6 @@ class Router {
                 $controller = resolve(PostController::class);
                 $post = GeneratedPost::query()->find($slugModel->object_id);
                 return $controller->getPost($post, $request);
-            case ChinaUniversity::class:
-                $controller = resolve(ChinaUniversityController::class);
-                return $controller->getUni($slugModel->object_id, $request);
             case Category::class:
                 $controller = resolve(CategoryController::class);
                 return $controller->getCategory($slugModel->object_id, $request);
