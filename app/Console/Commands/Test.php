@@ -3,13 +3,11 @@
 namespace App\Console\Commands;
 
 use App\Models\Category;
-use App\Models\ChinaUniversity;
-use App\Models\ContentChunk;
-use App\Models\Page;
+use App\Models\GeneratedPiece;
+use App\Models\Serp;
+use App\Services\ArticleGenerationService;
 use App\Services\HeadingGenerationService;
-use App\Services\UniquenessTestingService;
 use Illuminate\Console\Command;
-use OptimistDigital\MenuBuilder\Models\MenuItem;
 
 class Test extends Command
 {
@@ -49,13 +47,19 @@ class Test extends Command
      */
     public function handle()
     {
-        $piece = \App\Models\GeneratedPiece::query()->find(25);
+        $k = \App\Models\Keyword::query()->find(13);
+        /** @var ArticleGenerationService $s */
+        $s = resolve(\App\Services\ArticleGenerationService::class);
 
+        //$s = resolve(\App\Services\HeadingGenerationService::class);
 
+/*        $gp = GeneratedPiece::query()->find(163);
+        $s->generateHeading($gp);*/
 
-        /** @var HeadingGenerationService $s */
-        $s = resolve(HeadingGenerationService::class);
-        $s->generateHeading($piece);
+        //$category = Category::query()->find(15);
+
+        $serp = Serp::query()->find(214);
+        $s->generateHeadings($serp);
     }
 
 }

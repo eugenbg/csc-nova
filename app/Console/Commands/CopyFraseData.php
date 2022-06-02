@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Keyword;
 use App\Models\Piece;
 use App\Models\Serp;
+use App\Services\TextGenerationService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
@@ -55,6 +56,11 @@ class CopyFraseData extends Command
         $i = 0;
         foreach ($keywords as $keyword) {
             $i++;
+
+            if($i <= 10) {
+                continue;
+            }
+
             $serps = DB::connection('frase')
                 ->table('serps')
                 ->select('*')
@@ -72,7 +78,7 @@ class CopyFraseData extends Command
                 $this->info('copied data for ' . $keyword->keyword);
             }
 
-            if($i == 5) {
+            if($i == 30) {
                 die();
             }
         }
@@ -84,15 +90,21 @@ class CopyFraseData extends Command
     {
         $data = (array) $keyword;
         $keywordModel = new Keyword;
+        $embedding = TextGenerationService::embeddings([$data['keyword']]);
+        $keywordModel->embedding = $embedding[0];
         $keywordModel->fill($data)->save();
         $groupedPieces = $pieces->groupBy('serp_id');
 
+        $serpTitles = [];
         foreach ($serps as $serp) {
             $serpModel = new Serp();
             $data = (array) $serp;
             $serpModel->fill($data);
             $serpModel->keyword_id = $keywordModel->id;
+            $title = explode('|', $data['title']);
+            $serpModel->title = $title[0];
             $serpModel->save();
+            $serpTitles[$serpModel->id] = $serpModel->title;
 
             $piecesPayload = [];
             $serpPieces = $groupedPieces->get($serp->id);
@@ -109,6 +121,15 @@ class CopyFraseData extends Command
 
                 Piece::query()->insert($piecesPayload);
             }
+        }
+
+        $embeddings = TextGenerationService::embeddings($serpTitles);
+        foreach ($embeddings as $serpId => $embedding) {
+            Serp::query()
+                ->where('id', '=', $serpId)
+                ->update([
+                    'title_embedding' => json_encode($embedding)
+                ]);
         }
     }
 }

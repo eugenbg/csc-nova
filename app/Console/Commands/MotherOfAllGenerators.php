@@ -3,8 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Keyword;
-use App\Services\ChoosePiecesService;
-use App\Services\PreparePiecesService;
+use App\Services\ArticleGenerationService;
 use Illuminate\Console\Command;
 
 class MotherOfAllGenerators extends Command
@@ -24,13 +23,10 @@ class MotherOfAllGenerators extends Command
     protected $description = 'Command description';
 
     /**
-     * @var PreparePiecesService
-     */
-    private $preparePiecesService;
     /**
-     * @var ChoosePiecesService
+     * @var ArticleGenerationService
      */
-    private $choosePiecesService;
+    private $service;
 
     /**
      * Create a new command instance.
@@ -38,13 +34,11 @@ class MotherOfAllGenerators extends Command
      * @return void
      */
     public function __construct(
-        PreparePiecesService $preparePiecesService,
-        ChoosePiecesService $choosePiecesService
+        ArticleGenerationService $service
     )
     {
         parent::__construct();
-        $this->preparePiecesService = $preparePiecesService;
-        $this->choosePiecesService = $choosePiecesService;
+        $this->service = $service;
     }
 
     /**
@@ -55,20 +49,19 @@ class MotherOfAllGenerators extends Command
     public function handle()
     {
         $id = $this->option('keyword');
-        $keyword = Keyword::find($id);
+        if($id) {
+            $keywords = [Keyword::find($id)];
+        } else {
+            $keywords = Keyword::all();
+        }
+        $command = $this;
+        foreach ($keywords as $key => $keyword) {
+            $this->service->generateArticle($keyword, $key, function(...$args) use ($command) {
+                $command->info(sprintf(...$args));
+            });
 
-        $this->info(sprintf('STARTED GENERATION for keyword %s', $keyword->keyword));
-        $this->info(sprintf('cleaning pieces for keyword %s', $keyword->keyword));
-        $this->info(sprintf('%s pieces BEFORE cleaning', $keyword->pieces->count()));
-
-        $this->preparePiecesService->cleanPiecesForKeyword($keyword);
-
-        $keyword->refresh();
-        $this->info(sprintf('%s pieces AFTER cleaning', $keyword->pieces->count()));
-
-        $this->info(sprintf('choosing pieces for rewrite for keyword %s', $keyword->keyword));
-        $this->choosePiecesService->choosePiecesByBestArticle($keyword);
-
+            die();
+        }
 
         return 0;
     }

@@ -2,19 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\GeneratedPost;
 use App\Models\Post;
 
 class PostController {
 
 
     /**
-     * @param int $postId
+     * @param Post|GeneratedPost $post
      * @param $request
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
-    public function getPost($postId, $request)
+    public function getPost($post, $request)
     {
-        $post = Post::query()->find($postId);
         return view('post', ['post' => $post]);
     }
 

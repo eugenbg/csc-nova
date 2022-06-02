@@ -15,6 +15,12 @@ use Illuminate\Support\Collection;
  * @property int links
  * @property Keyword keyword
  * @property mixed keyword_id
+ * @property mixed $url
+ * @property mixed $title
+ * @property array $title_embedding
+ * @property array|mixed $scores
+ * @property bool|mixed $chosen
+ * @property GeneratedPiece[]|Collection $generatedPieces
  */
 class Serp extends Model
 {
@@ -24,12 +30,27 @@ class Serp extends Model
 
     public $timestamps = false;
 
+    public $score = null;
+
+    public $casts = [
+        'title_embedding' => 'array',
+        'scores' => 'array'
+    ];
+
     /**
      * @return HasMany
      */
     public function pieces(): HasMany
     {
         return $this->hasMany(Piece::class);
+    }
+
+    /**
+     * @return HasMany
+     */
+    public function generatedPieces(): HasMany
+    {
+        return $this->hasMany(GeneratedPiece::class);
     }
 
     /**

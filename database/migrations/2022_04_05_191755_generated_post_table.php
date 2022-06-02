@@ -16,12 +16,14 @@ class GeneratedPostTable extends Migration
         Schema::create('generated_posts', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('keyword_id');
-            $table->string('slug')->index();
-            $table->string('image');
+            $table->unsignedBigInteger('category_id');
+            $table->string('slug')->index()->nullable();
+            $table->string('image')->nullable();
             $table->text('title');
             $table->text('meta_title');
             $table->text('content');
             $table->date('published_at');
+            $table->timestamps();
         });
     }
 

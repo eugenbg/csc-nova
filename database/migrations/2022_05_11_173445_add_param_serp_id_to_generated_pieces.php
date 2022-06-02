@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddEmbeddingToGeneratedPieces extends Migration
+class AddParamSerpIdToGeneratedPieces extends Migration
 {
     /**
      * Run the migrations.
@@ -14,9 +14,7 @@ class AddEmbeddingToGeneratedPieces extends Migration
     public function up()
     {
         Schema::table('generated_pieces', function (Blueprint $table) {
-            $table->json('embedding')->nullable();
-            $table->boolean('chosen')->nullable();
-            $table->float('distance_from_original')->nullable();
+            $table->unsignedBigInteger('serp_id');
         });
     }
 
@@ -28,9 +26,7 @@ class AddEmbeddingToGeneratedPieces extends Migration
     public function down()
     {
         Schema::table('generated_pieces', function (Blueprint $table) {
-            $table->dropColumn('embedding');
-            $table->dropColumn('chosen');
-            $table->dropColumn('distance_from_original');
+            $table->dropColumn('serp_id');
         });
     }
 }

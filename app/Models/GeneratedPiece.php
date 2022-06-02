@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property string content
+ * @property string chosen_heading
  * @property int original_piece_id
  * @property mixed original_heading
  * @property mixed id
@@ -15,6 +16,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property mixed keyword_id
  * @property Piece|null $piece
  * @property array $embedding
+ * @property array|null $generated_headings
+ * @property int $serp_id
+ * @property boolean $chosen
  */
 class GeneratedPiece extends Model
 {
@@ -23,7 +27,8 @@ class GeneratedPiece extends Model
     public $timestamps = false;
 
     public $casts = [
-        'embedding' => 'array'
+        'embedding' => 'array',
+        'generated_headings' => 'array'
     ];
 
     public function piece(): BelongsTo

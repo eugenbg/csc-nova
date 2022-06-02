@@ -5,10 +5,11 @@ namespace App\Services;
 use App\Models\Spell;
 use GuzzleHttp\Client;
 use GuzzleHttp\Promise;
+use Illuminate\Support\Arr;
 
 class TextGenerationService {
 
-    const DEFAULT_STOP_SEQUENCES = ['"""', 'Text:', 'Seed'];
+    const DEFAULT_STOP_SEQUENCES = ['"""', 'Text:', 'Seed', 'seed'];
 
     public static function getClient()
     {
@@ -18,30 +19,41 @@ class TextGenerationService {
         ]);
     }
 
-    public static function generate($inputText, Spell $spell, $qty = 1, $stopSequences = [])
+    public static function generate($inputText, Spell $spell, $qty = 1, $stopSequences = [], $overrideTokensLength = null)
     {
         $payload = sprintf($spell->prompt, $inputText);
         if($spell->tokens == 0) {
-            $tokens = round(count(explode(' ', $inputText)) * 4);
+            $tokens = min(2049, round(count(explode(' ', $inputText)) * 3));
         } else {
             $tokens = $spell->tokens;
+        }
+
+        if($overrideTokensLength) {
+            $tokens = $overrideTokensLength;
         }
 
         if(!count($stopSequences)) {
             $stopSequences = self::DEFAULT_STOP_SEQUENCES;
         }
 
-        $response = self::getClient()->post(sprintf('https://api.openai.com/v1/engines/%s/completions', $spell->engine), [
-            'json' => [
-                'prompt' => $payload,
-                'n' => $qty,
-                'max_tokens' => $tokens, //200
-                "temperature" => (float) $spell->temperature, //0.2
-                "top_p" => (float) $spell->top_p, //1
-                "frequency_penalty" => (float) $spell->frequency_penalty, //1
-                "stop" => $stopSequences
-            ]
-        ]);
+        try {
+            $response = self::getClient()->post(sprintf('https://api.openai.com/v1/engines/%s/completions', $spell->engine), [
+                'json' => [
+                    'prompt' => $payload,
+                    'n' => $qty,
+                    'max_tokens' => $tokens, //200
+                    "temperature" => (float) $spell->temperature, //0.2
+                    "top_p" => (float) $spell->top_p, //1
+                    "frequency_penalty" => (float) $spell->frequency_penalty, //1
+                    "stop" => $stopSequences
+                ]
+            ]);
+        } catch (\Exception $exception) {
+            $result = $exception->getResponse()->getBody()->__toString();
+            if(str_contains($result, 'Please reduce your prompt; or completion length')) {
+                return self::generate($inputText, $spell, $qty, $stopSequences, (int) ($tokens * 0.8));
+            }
+        }
 
         $result = json_decode($response->getBody()->__toString(), true);
 
@@ -65,23 +77,14 @@ class TextGenerationService {
 
     public static function embeddings(array $texts)
     {
-        $promises = [];
-        foreach ($texts as $id => $text) {
-            $promises[$id] = self::getClient()->postAsync(sprintf('https://api.openai.com/v1/engines/text-similarity-babbage-001/embeddings'), [
-                'json' => [
-                    'input' => $text
-                ]
-            ]);
-        }
+        $response = self::getClient()->post(sprintf('https://api.openai.com/v1/engines/text-similarity-babbage-001/embeddings'), [
+            'json' => [
+                'input' => array_values($texts)
+            ]
+        ]);
 
-        $results = [];
-        $responses = Promise\all($promises)->wait();
-        foreach ($responses as $id => $response) {
-            $data = json_decode($response->getBody()->__toString(), true);
-            $results[$id] = $data['data']['0']['embedding'];
-        }
-
-        return $results;
+        $result = json_decode($response->getBody()->__toString(), true);
+        return array_combine(array_keys($texts), Arr::pluck($result["data"], 'embedding'));
     }
 
 }

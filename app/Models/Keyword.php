@@ -10,8 +10,10 @@ use Illuminate\Support\Collection;
 /**
  * @property Piece[]|Collection pieces
  * @property mixed id
+ * @property mixed embedding
  * @property Serp[]|Collection serps
- * @property GeneratedPiece[] generatedPieces
+ * @property Collection|GeneratedPiece[] generatedPieces
+ * @property mixed $keyword
  */
 class Keyword extends Model
 {
@@ -20,6 +22,10 @@ class Keyword extends Model
     protected $guarded = [];
 
     public $timestamps = false;
+
+    public $casts = [
+        'embedding' => 'array'
+    ];
 
     /**
      * @return HasMany
@@ -35,6 +41,13 @@ class Keyword extends Model
     public function serps(): HasMany
     {
         return $this->hasMany(Serp::class);
+    }
+
+    public function chosenSerp()
+    {
+        return $this->serps->first(function(Serp $serp) {
+            return $serp->chosen;
+        });
     }
 
     /**

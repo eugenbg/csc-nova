@@ -17,63 +17,104 @@ class HeadingGenerationService {
      */
     private $uniquenessService;
 
-    const HEADING_SPELL_ID = 11;
-    const HEADINGS_GENERATE_QTY = 11;
+    const HEADING_SPELL_ID = 12;
+    const HEADINGS_GENERATE_QTY = 5;
     const MAX_WORDS = 10;
+
+    /**
+     * @var array
+     */
+    private $embeddings = [];
 
     public function __construct(UniquenessTestingService $uniquenessService)
     {
         $this->uniquenessService = $uniquenessService;
     }
 
-    public function generateHeading(GeneratedPiece $piece, $otherHeadings = [])
+    public function generateHeading(GeneratedPiece $generatedPiece, $otherHeadings = [])
     {
-        $spell = Spell::query()->find(self::HEADING_SPELL_ID);
-        $generatedHeadings = array_map('strtolower', TextGenerationService::generate(
-            $piece->content, $spell,
-            self::HEADINGS_GENERATE_QTY,
-            ["\n", '"""']
-        ));
+    }
 
-        $generatedHeadings = array_unique($generatedHeadings);
+    public function generateHeadings(Serp $serp)
+    {
+        $allHeadings = [];
+        $originalHeadings = [];
+        $generatedPieces = $serp->generatedPieces->filter(function (GeneratedPiece  $generatedPiece) {
+            return $generatedPiece->chosen;
+        });
 
-        if (($key = array_search(strtolower($piece->heading), $generatedHeadings)) !== false) {
-            unset($generatedHeadings[$key]);
-        }
+        foreach ($generatedPieces as $generatedPiece) {
+            $spell = Spell::query()->find(self::HEADING_SPELL_ID);
+            $generatedHeadings = array_map('strtolower', TextGenerationService::generate(
+                $generatedPiece->heading, $spell,
+                self::HEADINGS_GENERATE_QTY,
+                ["\n", '"""']
+            ));
 
-        $headingEmbeddings = TextGenerationService::embeddings($generatedHeadings);
-        $otherHeadingEmbeddings = TextGenerationService::embeddings($otherHeadings);
-        $originalHeadingEmbedding = TextGenerationService::embeddings([$piece->heading])[0];
+            $generatedHeadings = array_map('trim', $generatedHeadings);
+            $generatedHeadings = array_filter(array_unique($generatedHeadings));
 
-        $payload = [];
-        foreach ($generatedHeadings as $key => $generatedHeading) {
-            $distanceHeading = EmbeddingDistanceService::getDistance($originalHeadingEmbedding, $headingEmbeddings[$key]);
-            $distanceContent = EmbeddingDistanceService::getDistance($piece->embedding, $headingEmbeddings[$key]);
-            if($distanceHeading < 0.3 || count(explode(' ', $generatedHeading)) > self::MAX_WORDS) { //it means it's basically the same heading
-                continue;
+            if (($key = array_search(strtolower($generatedPiece->heading), $generatedHeadings)) !== false) {
+                unset($generatedHeadings[$key]);
             }
 
-            foreach ($otherHeadings as $ohKey => $otherHeading) {
-                $distanceOtherHeading = EmbeddingDistanceService::getDistance(
-                    $originalHeadingEmbedding,
-                    $otherHeadingEmbeddings[$ohKey]
+            $generatedPiece->generated_headings = $generatedHeadings;
+            $generatedPiece->save();
+
+            $allHeadings = array_merge($allHeadings, $generatedHeadings);
+            $originalHeadings[] = $generatedPiece->piece->heading;
+        }
+
+        $allHeadings = array_unique($allHeadings);
+        $allHeadings = array_merge($allHeadings, $originalHeadings);
+        $allHeadings = array_combine($allHeadings, $allHeadings);
+
+        $this->embeddings = TextGenerationService::embeddings($allHeadings);
+    }
+
+    public function chooseHeadings(Serp $serp)
+    {
+        $generatedPieces = $serp->generatedPieces->filter(function (GeneratedPiece  $generatedPiece) {
+            return $generatedPiece->chosen;
+        });
+
+        $otherHeadings = [];
+        foreach ($generatedPieces as $generatedPiece) {
+            $generatedHeadings = $generatedPiece->generated_headings;
+            $generatedHeadings = array_filter($generatedHeadings, function($heading) use ($otherHeadings) {
+                return !in_array($heading, $otherHeadings);
+            });
+
+            $payload = [];
+            foreach ($generatedHeadings as $key => $generatedHeading) {
+                $distanceHeading = EmbeddingDistanceService::getDistance(
+                    $this->embeddings[$generatedPiece->heading],
+                    $this->embeddings[$generatedHeading]
                 );
 
-                if($distanceOtherHeading < 0.4) {
-                    continue(2);
+                $distanceContent = EmbeddingDistanceService::getDistance(
+                    $generatedPiece->embedding,
+                    $this->embeddings[$generatedHeading]
+                );
+
+                if(count(explode(' ', $generatedHeading)) > self::MAX_WORDS) {
+                    continue;
                 }
+
+                $payload[] = [
+                    'heading' => $generatedHeading,
+                    'distance_original_heading' => $distanceHeading,
+                    'distance_content' => $distanceContent,
+                    'sum_distance' => $distanceHeading + $distanceContent / 2
+                ];
             }
 
-            $payload[] = [
-                'heading' => $generatedHeading,
-                'distance_original_heading' => $distanceHeading,
-                'distance_content' => $distanceContent,
-                'sum_distance' => $distanceHeading + $distanceContent
-            ];
+            $sorted = Arr::sort($payload, 'sum_distance');
+            $winner = array_shift($sorted);
+            $otherHeadings[] = $winner['heading'];
+            $generatedPiece->chosen_heading = ucwords($winner['heading']);
+            $generatedPiece->save();
         }
-
-        $sorted = Arr::sort($payload, 'sum_distance');
-        return $sorted[0]['heading'];
     }
 
 }
