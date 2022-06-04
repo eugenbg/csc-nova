@@ -31,8 +31,6 @@ class SluggableModel extends Model
      */
     public function save(array $options = [])
     {
-        parent::save($options);
-
         if(!$this->slug) {
             $this->slug = Str::slug($this->title);
         }
