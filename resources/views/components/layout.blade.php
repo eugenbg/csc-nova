@@ -17,22 +17,8 @@
         <link rel="stylesheet" href="/css/style.css">
         <script src="/js/jquery-3.4.1.min.js"></script>
         <script src="/js/owl.carousel.min.js"></script>
-
-        <!-- Global site tag (gtag.js) - Google Analytics -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-B0PM6PB57J"></script>
-        <script>
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-
-            gtag('config', 'G-B0PM6PB57J');
-        </script>
     </head>
     <body>
-
-    <noscript><div><img src="https://mc.yandex.ru/watch/84037588" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
-    <!-- /Yandex.Metrika counter -->
-
 
     <div class="site-mobile-menu site-navbar-target">
         <div class="site-mobile-menu-header">
@@ -50,7 +36,7 @@
                     {{--<a href="#" class="d-inline-flex align-items-center"><span class="icon-lock mr-2"></span><span>Sign In</span></a>--}}
                 </div>
                 <div class="col-3 col-md-6 col-lg-6 text-lg-center logo">
-                    <a href="/">CSC Scholarships<span class="text-primary">.</span> </a>
+                    <a href="/">Immersv VR<span class="text-primary">.</span> </a>
                 </div>
                 <div class="col-9 col-md-6 col-lg-3 text-right top-menu">
                     <div class="d-inline-flex align-items-center">

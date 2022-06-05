@@ -1,40 +1,22 @@
 <x-layout>
-    @section('title', 'China Scholarship Council (CSC)')
+    @section('title', 'IMMERSV: all about virtual reality discovery and advertising')
     <div class="section-latest">
         <div class="container">
             <div class="row gutter-v1 align-items-stretch">
                 <div class="col-12">
-                    <h1 class="section-title">China Scholarship Council (CSC)</h1>
+                    <h1 class="section-title">IMMERSV VR Experience</h1>
                 </div>
                 <div class="col-md-9 pr-md-5">
-                    <div class="row mb-5">
-                        {!! $mainPost->content !!}
+                    <div class="row mb-5 ml-1 mr-1 align-content-center">
+                        <p>We write about virtual reality discovery and advertising and how game developers are using Virtual Reality (VR) to design games.</p>
+                        <p>Main output of our blog is guidance in the processes of setting up and operating social VR communities, collaboration and matchmaking workspaces.</p>
+                        <p>Demand for our virtual world blogging arose from scarcity of such content after the WaveVR platform launch in August 2017 followed by drop and absence of promotion, despite the fact that Virtual Reality can lead to self-employment, new skills and career growth.</p>
+                        <p>Join us in our journey!</p>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <x-subscribe-component/>
                 </div>
-            </div>
-
-            <div class="row">
-                <h1 style="text-align: center">Universities Offering CSC Scholarships</h1>
-            </div>
-
-            <div class="row">
-
-                @foreach ($unis as $uni)
-                    <div class="col-4 p-1">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title"><strong>{{$uni->abbr}}</strong> - {{$uni->name}}</h5>
-                                <span>Region: {{$uni->getRegion()}}</span>
-                            </div>
-                            <div class="card-body">
-                                <a href="{{$uni->link}}">{{$uni->name}} scholarships</a>
-                            </div>
-                        </div>
-                    </div>
-                @endforeach
             </div>
 
 

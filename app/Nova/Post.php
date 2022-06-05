@@ -3,6 +3,7 @@
 namespace App\Nova;
 
 use Illuminate\Http\Request;
+use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Select;
 use Laravel\Nova\Fields\Text;
@@ -42,14 +43,15 @@ class Post extends Resource
      */
     public function fields(Request $request)
     {
-        return [
+        return array(
             ID::make(__('ID'), 'id')->sortable(),
             Text::make(__('Title'), 'title'),
             CKEditor5Classic::make(__('Content'), 'content')
                 ->showOnDetail(true)
                 ->showOnIndex(false),
+            BelongsTo::make('Category'),
             Text::make(__('Slug'), 'slug'),
-        ];
+        );
     }
 
     /**

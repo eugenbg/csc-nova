@@ -4,6 +4,7 @@ namespace App\Models;
 
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * App\Models\Category
@@ -62,5 +63,10 @@ class Category extends SluggableModel
     public function getLinkAttribute(): string
     {
         return route('slug', ['fallbackPlaceholder' => $this->slug]);
+    }
+
+    public function save(array $options = [])
+    {
+        return parent::save($options);
     }
 }
