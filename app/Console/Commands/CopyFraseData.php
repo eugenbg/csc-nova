@@ -57,7 +57,7 @@ class CopyFraseData extends Command
         foreach ($keywords as $keyword) {
             $i++;
 
-            if($i <= 10) {
+            if($i <= 30) {
                 continue;
             }
 

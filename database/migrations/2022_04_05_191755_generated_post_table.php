@@ -16,7 +16,7 @@ class GeneratedPostTable extends Migration
         Schema::create('generated_posts', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('keyword_id');
-            $table->unsignedBigInteger('category_id');
+            $table->unsignedBigInteger('category_id')->nullable();
             $table->string('slug')->index()->nullable();
             $table->string('image')->nullable();
             $table->text('title');

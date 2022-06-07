@@ -3,7 +3,10 @@
 
     <div class="featured-post single-article">
         <div class="text-wrap p-2">
-            <div class="meta-cat"><a href="/{{$post->category->slug}}">{{$post->category->title}}</a></div>
+            @if($post->category)
+                <div class="meta-cat"><a href="/{{$post->category->slug}}">{{$post->category->title}}</a></div>
+            @endif
+
             <h2>{{$post->title}}</h2>
             <div class="meta">
                 <span>{{$post->createdAtFormatted()}}</span>
@@ -17,9 +20,15 @@
     <div class="container article">
         <div class="row justify-content-center align-items-stretch">
 
-            <article class="col-lg-8 order-lg-2 px-lg-5">
-                {!! $post->content !!}
-            </article>
+            @if($debug)
+                <article class="col-lg-8 order-lg-2 px-lg-5">
+                    {!! $post->debug_content !!}
+                </article>
+            @else
+                <article class="col-lg-8 order-lg-2 px-lg-5">
+                    {!! $post->content !!}
+                </article>
+            @endif
 
             <x-share-component/>
 

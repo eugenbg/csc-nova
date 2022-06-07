@@ -58,4 +58,13 @@ class Keyword extends Model
         return $this->hasMany(GeneratedPiece::class);
     }
 
+    /**
+     * @return HasMany
+     */
+    public function chosenGeneratedPieces(): HasMany
+    {
+        return $this->hasMany(GeneratedPiece::class)
+            ->where('chosen', '=', 1);
+    }
+
 }

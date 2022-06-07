@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Helper;
 use App\Models\Category;
 use App\Models\GeneratedPiece;
 use App\Models\GeneratedPost;
@@ -28,6 +29,28 @@ class ArticleGenerationService
      * @var HeadingGenerationService
      */
     private $headingGenerationService;
+    private $badWordsInHeadings = [
+        'article',
+        'related',
+        'link',
+        'resource',
+        'in touch',
+        'contact',
+        'resource',
+        'log in',
+        'navigation',
+        'posts',
+        'email',
+        'comment',
+        'confirm',
+        'hello',
+        'downloads',
+        'sponsored',
+        'tag',
+        'search',
+        'event',
+        'recently asked',
+    ];
 
     public function __construct(UniquenessTestingService $uniquenessService, HeadingGenerationService $headingGenerationService)
     {
@@ -35,12 +58,16 @@ class ArticleGenerationService
         $this->headingGenerationService = $headingGenerationService;
     }
 
-    public $stopWords = ['click'];
+    public $stopWords = [
+        'click',
+        'form below'
+    ];
 
     private $badCharacters = ['{', '}', '/', '\\'];
 
     public function generateArticle(Keyword $keyword, $i, $loggerFn)
     {
+        $start = now();
         $loggerFn('number %s', $i);
         $this->cleanPiecesForKeyword($keyword);
         $loggerFn('choosing');
@@ -70,12 +97,31 @@ class ArticleGenerationService
             $serp->refresh();
             $this->chooseGeneratedPieces($serp);
 
-            $category = Category::query()->find(15);//uk scholarships
             $keyword->refresh();
             $serp->refresh();
+
+            $loggerFn('generateHeadings');
             $this->generateHeadings($serp);
-            $this->saveGeneratedPost($keyword, $category);
+            $keyword->refresh();
+
+            $loggerFn('finalizePost');
+            FinalizingService::finalizePost($keyword);
+
+            $category = Category::query()->find(15);//uk scholarships
+            $generatedPost = PostCompositionService::saveGeneratedPost($keyword, $category);
+            $initialLength = $generatedPost->words();
+            $desiredLength = max(round($initialLength * 1.3), 600);
+
+            $loggerFn('lengthenPost');
+            while($generatedPost->words() < $desiredLength) {
+                $loggerFn('lengthening the post, current length %s words', $generatedPost->words());
+                FinalizingService::lengthenPost($keyword);
+                $generatedPost->refresh();
+            }
         }
+
+        $timeTaken = $start->diffInMilliseconds(now()) / 1000;
+        $loggerFn('took %s seconds', $timeTaken);
     }
 
     public function chooseGeneratedPieces(Serp $serp)
@@ -111,11 +157,11 @@ class ArticleGenerationService
 
             $words = count(explode(' ', $generatedPiece->content));
             $wordsInSource = count(explode(' ', $generatedPiece->piece->content));
-            if ($words / $wordsInSource < 0.7) {
+            if ($words / $wordsInSource < 0.5) {
                 continue;
             }
 
-            if ($this->strpos_arr($generatedPiece->content, $this->badCharacters)) {
+            if (Helper::strpos_arr($generatedPiece->content, $this->badCharacters)) {
                 continue;
             }
 
@@ -216,7 +262,27 @@ class ArticleGenerationService
     {
         $bad = [];
         foreach ($keyword->pieces as $piece) {
-            if ($this->strpos_arr($piece->content, $this->badCharacters)) {
+            if (Helper::strpos_arr($piece->content, $this->badCharacters)) {
+                $bad[] = $piece->id;
+                continue;
+            }
+
+            if (Helper::strpos_arr($piece->content, $this->stopWords)) {
+                $bad[] = $piece->id;
+                continue;
+            }
+
+            if (Helper::strpos_arr(mb_strtolower($piece->heading), $this->badWordsInHeadings)) {
+                $bad[] = $piece->id;
+                continue;
+            }
+
+            if (strlen($piece->heading) < 5) {
+                $bad[] = $piece->id;
+                continue;
+            }
+
+            if($piece->words() < 20) {
                 $bad[] = $piece->id;
             }
         }
@@ -246,15 +312,6 @@ class ArticleGenerationService
             ->delete();
     }
 
-    private function strpos_arr($haystack, $needle)
-    {
-        if (!is_array($needle)) $needle = array($needle);
-        foreach ($needle as $what) {
-            if (($pos = strpos($haystack, $what)) !== false) return $pos;
-        }
-        return false;
-    }
-
     /**
      * @param Piece|GeneratedPiece $piece
      * @param Piece|GeneratedPiece $otherPiece
@@ -265,9 +322,6 @@ class ArticleGenerationService
         $sum = 0;
         $left = $piece->embedding;
         $right = $otherPiece->embedding;
-        if (!is_array($left)) {
-            $a = 0;
-        }
         foreach ($left as $key => $number1) {
             $number2 = $right[$key];
             $sum += ($number1 - $number2) ** 2;
@@ -280,7 +334,7 @@ class ArticleGenerationService
     {
         $sentences = collect(preg_split('/(?<!Mr.|Mrs.|Ms.|Dr.|St.)(?<=[.?!;])\s+/', $generatedPiece->content, -1, PREG_SPLIT_NO_EMPTY));
         $sentences = $sentences->filter(function ($sentence) {
-            return $this->strpos_arr($sentence, $this->stopWords) === false;
+            return Helper::strpos_arr($sentence, $this->stopWords) === false;
         })->toArray();
 
         $generatedPiece->content = implode(' ', $sentences);
@@ -322,40 +376,6 @@ class ArticleGenerationService
                     ->update(['embedding' => json_encode($vector)]);
             }
         }
-    }
-
-    public function saveGeneratedPost(Keyword $keyword, Category $category)
-    {
-        $generatedPieces = $keyword->generatedPieces->filter(function (GeneratedPiece $piece) {
-            return $piece->chosen;
-        });
-
-        $content = '';
-        foreach ($generatedPieces as $generatedPiece) {
-            $content .= sprintf('<h2>ORIGINAL: %s</h2>', $generatedPiece->heading);
-            $content .= sprintf('<h2>GENERATED: %s</h2>', $generatedPiece->chosen_heading);
-            $content .= sprintf(
-                '<p>Original content: %s</p><p>Generated content: %s</p>',
-                $generatedPiece->piece->content,
-                $generatedPiece->content
-            );
-        }
-
-        $post = GeneratedPost::query()
-            ->where('keyword_id', '=', $keyword->id)
-            ->first();
-
-        if(!$post) {
-            $post = new GeneratedPost();
-        }
-
-        $post->keyword_id = $keyword->id;
-        $post->category_id = $category->id;
-        $post->meta_title = $keyword->keyword;
-        $post->title = $keyword->keyword;
-        $post->content = $content;
-        $post->published_at = now();
-        $post->save();
     }
 
     public function generateHeadings(Serp $serp)
