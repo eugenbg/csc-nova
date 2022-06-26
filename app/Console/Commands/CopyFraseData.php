@@ -18,7 +18,7 @@ class CopyFraseData extends Command
      *
      * @var string
      */
-    protected $signature = 'copy-frase';
+    protected $signature = 'copy-frase {--reset} {--keyword=} {--from=} {--to=}';
 
     /**
      * The console command description.
@@ -44,22 +44,31 @@ class CopyFraseData extends Command
      */
     public function handle()
     {
-        Keyword::query()->truncate();
-        Piece::query()->truncate();
-        Serp::query()->truncate();
+        if($this->option('reset')) {
+            Keyword::query()->truncate();
+            Piece::query()->truncate();
+            Serp::query()->truncate();
+        }
 
-        $keywords = DB::connection('frase')
+        $builder = DB::connection('frase')
             ->table('keywords')
-            ->select('*')
-            ->get();
+            ->select('*');
+
+        if($keywordId = $this->option('keyword')) {
+            $builder->where('id', '=', $keywordId);
+        }
+
+        if(($from = $this->option('from'))
+            && ($to = $this->option('to'))
+        ) {
+            $builder->whereBetween('id', [$from, $to]);
+        }
+
+        $keywords = $builder->get();
 
         $i = 0;
         foreach ($keywords as $keyword) {
             $i++;
-
-            if($i <= 30) {
-                continue;
-            }
 
             $serps = DB::connection('frase')
                 ->table('serps')
@@ -76,10 +85,6 @@ class CopyFraseData extends Command
             if($serps->count() && $pieces->count()) {
                 $this->copyKeywordData($keyword, $serps, $pieces);
                 $this->info('copied data for ' . $keyword->keyword);
-            }
-
-            if($i == 30) {
-                die();
             }
         }
 

@@ -21,6 +21,7 @@ use Illuminate\Support\Collection;
  * @property array|mixed $scores
  * @property bool|mixed $chosen
  * @property GeneratedPiece[]|Collection $generatedPieces
+ * @property int|mixed $words
  */
 class Serp extends Model
 {

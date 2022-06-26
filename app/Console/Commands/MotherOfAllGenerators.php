@@ -13,7 +13,7 @@ class MotherOfAllGenerators extends Command
      *
      * @var string
      */
-    protected $signature = 'mother {--keyword=}';
+    protected $signature = 'mother {--keyword=} {--from=} {--to=}';
 
     /**
      * The console command description.
@@ -49,18 +49,26 @@ class MotherOfAllGenerators extends Command
     public function handle()
     {
         $id = $this->option('keyword');
+        $from = $this->option('from');
+        $to = $this->option('to');
         if($id) {
-            $keywords = [Keyword::find($id)];
+            $keywords = collect([Keyword::find($id)]);
         } else {
-            $keywords = Keyword::all();
+            $builder = Keyword::query();
+            if($from && $to) {
+                $builder->whereBetween('id', [$from, $to]);
+            }
+
+            $keywords = $builder->get();
         }
+
+        $this->info(sprintf('got %s keywords, starting...', $keywords->count()));
+
         $command = $this;
         foreach ($keywords as $key => $keyword) {
             $this->service->generateArticle($keyword, $key, function(...$args) use ($command) {
                 $command->info(sprintf(...$args));
             });
-
-            die();
         }
 
         return 0;

@@ -1,4 +1,6 @@
 <x-layout>
+    @php /** @var \App\Models\GeneratedPost $post */ @endphp
+
     @section('title', $post->title)
 
     <div class="featured-post single-article">
@@ -21,14 +23,44 @@
         <div class="row justify-content-center align-items-stretch">
 
             @if($debug)
-                <article class="col-lg-8 order-lg-2 px-lg-5">
-                    {!! $post->debug_content !!}
-                </article>
+                <h1>IMPLEMENT DEBUG</h1>
             @else
                 <article class="col-lg-8 order-lg-2 px-lg-5">
-                    {!! $post->content !!}
+                    @foreach($post->chosenGeneratedPieces as $piece)
+                        <div class="clearfix">
+                            <h2>{{$piece->chosen_heading}}</h2>
+                            @if($piece->image)
+                                <figure class="image image-style-align-left">
+                                    <img src="{{$piece->getImage()}}"/>
+                                </figure>
+                            @endif
+                            <p>{{$piece->content}}</p>
+                        </div>
+                    @endforeach
+
+                    <table class="table table-hover">
+                        <tbody>
+                        <tr>
+                            <td>Website</td>
+                            <td>
+                                <a rel="nofollow" target="_blank" href="{{$post->keyword->additional_data['website']}}">
+                                    {{$post->keyword->additional_data['website']}}
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Phone Number</td>
+                            <td>{{$post->keyword->additional_data['phone']}}</td>
+                        </tr>
+                        <tr>
+                            <td>Address</td>
+                            <td>{{$post->keyword->additional_data['address']}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
                 </article>
             @endif
+
 
             <x-share-component/>
 

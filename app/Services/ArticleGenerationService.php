@@ -5,9 +5,9 @@ namespace App\Services;
 use App\Helper;
 use App\Models\Category;
 use App\Models\GeneratedPiece;
-use App\Models\GeneratedPost;
 use App\Models\Keyword;
 use App\Models\Piece;
+use App\Models\ReferenceTextPiece;
 use App\Models\Serp;
 use App\Models\Spell;
 use Illuminate\Support\Collection;
@@ -60,15 +60,20 @@ class ArticleGenerationService
 
     public $stopWords = [
         'click',
-        'form below'
+        'form below',
+        '__',
+        'apply here'
     ];
 
-    private $badCharacters = ['{', '}', '/', '\\'];
+    private $badCharacters = ['{', '}', '/', '\\', '~'];
 
     public function generateArticle(Keyword $keyword, $i, $loggerFn)
     {
+        GeneratedPiece::query()
+            ->where('keyword_id', '=', $keyword->id)
+            ->delete();
+
         $start = now();
-        $loggerFn('number %s', $i);
         $this->cleanPiecesForKeyword($keyword);
         $loggerFn('choosing');
         /** @var Serp $serp */
@@ -83,14 +88,18 @@ class ArticleGenerationService
             }
             $loggerFn('----------');
             $loggerFn('----------');
+        } else {
+            $loggerFn('COULD NOT FIND A GOOD SOURCE FOR REWRITE');
         }
 
         if ($serp) {
             $loggerFn('rewritePieces');
+            $start = now();
             $this->rewritePieces($serp);
             $serp->refresh();
+            $loggerFn('rewritePieces took %s sec', now()->diffInMilliseconds($start) / 1000);
+
             $loggerFn('cleanGeneratedPiecesForSerp');
-            $this->cleanGeneratedPiecesForSerp($serp);
             $serp->refresh();
             $this->saveEmbeddings($serp);
             $loggerFn('chooseGeneratedPieces');
@@ -107,17 +116,26 @@ class ArticleGenerationService
             $loggerFn('finalizePost');
             FinalizingService::finalizePost($keyword);
 
-            $category = Category::query()->find(15);//uk scholarships
+            $category = Category::query()->find(15);
             $generatedPost = PostCompositionService::saveGeneratedPost($keyword, $category);
+
+            $keyword->refresh();
+            GooglePlacesService::saveKeywordData($keyword);
+
             $initialLength = $generatedPost->words();
             $desiredLength = max(round($initialLength * 1.3), 600);
 
             $loggerFn('lengthenPost');
-            while($generatedPost->words() < $desiredLength) {
+            $i = 0;
+            while ($generatedPost->words() < $desiredLength && $i >= 3) {
+                $i++;
                 $loggerFn('lengthening the post, current length %s words', $generatedPost->words());
                 FinalizingService::lengthenPost($keyword);
                 $generatedPost->refresh();
             }
+
+            $generatedPost->source_url = $serp->url;
+            $generatedPost->save();
         }
 
         $timeTaken = $start->diffInMilliseconds(now()) / 1000;
@@ -153,22 +171,10 @@ class ArticleGenerationService
         $serp->load(['generatedPieces', 'generatedPieces.piece']);
 
         foreach ($serp->generatedPieces as $generatedPiece) {
-            $generatedPiece = $this->removeSentencesWithStopWords($generatedPiece);
 
-            $words = count(explode(' ', $generatedPiece->content));
-            $wordsInSource = count(explode(' ', $generatedPiece->piece->content));
-            if ($words / $wordsInSource < 0.5) {
-                continue;
-            }
+            $this->improveGeneratedPiece($generatedPiece);
 
-            if (Helper::strpos_arr($generatedPiece->content, $this->badCharacters)) {
-                continue;
-            }
-
-            $uniqueFromOriginal = !$this->uniquenessService
-                ->hasDuplicates($generatedPiece->content, [$generatedPiece->piece->content], 15);
-
-            if($uniqueFromOriginal) {
+            if ($this->isGeneratedPieceGood($generatedPiece)) {
                 $generatedPiece->save();
                 $good->add($generatedPiece);
             }
@@ -185,21 +191,18 @@ class ArticleGenerationService
         /** @var Spell $spell */
         $spell = Spell::find(5);
 
+        /**
+         * make 3 shots for each piece
+         */
         foreach ($serp->pieces as $piece) {
-            if ($piece->generatedPieces->count()) {
-                continue;
+            $qty = $i = 0;
+            while($qty < 2 && $i <= 3) {
+                $i++;
+                $qty = $this->generatePiecesForSourcePiece($piece, $spell);
+                $a = 0;
             }
 
-            $rewrittenTexts = TextGenerationService::generate($piece->content, $spell, self::QTY_OF_REWRITES);
-            foreach ($rewrittenTexts as $rewrittenText) {
-                $generatedPiece = new GeneratedPiece();
-                $generatedPiece->original_piece_id = $piece->id;
-                $generatedPiece->heading = $piece->heading;
-                $generatedPiece->keyword_id = $piece->keyword_id;
-                $generatedPiece->content = $rewrittenText;
-                $generatedPiece->serp_id = $serp->id;
-                $generatedPiece->save();
-            }
+            $b = 0;
         }
     }
 
@@ -228,7 +231,7 @@ class ArticleGenerationService
         return $serp;
     }
 
-    private function getBestSerpByKeyword(Keyword $keyword)
+    public function getBestSerpByKeyword(Keyword $keyword)
     {
         $keyword->refresh();
         $serps = new Collection;
@@ -250,12 +253,14 @@ class ArticleGenerationService
 
         /** @var SerpScoringService $scoringService */
         $scoringService = resolve(SerpScoringService::class);
-        $serpId = $scoringService->rank($serps);
-        if (!$serpId) {
+        $serpIds = $scoringService->rank($serps);
+        if (!count($serpIds)) {
             return null;
         }
 
-        return $keyword->serps->keyBy('id')->get($serpId);
+        $winnerByEmbedding = $this->getBestSerpByEmbedding($serpIds);
+
+        return $keyword->serps->keyBy('id')->get($winnerByEmbedding);
     }
 
     private function cleanPiecesForKeyword(Keyword $keyword)
@@ -282,7 +287,7 @@ class ArticleGenerationService
                 continue;
             }
 
-            if($piece->words() < 20) {
+            if ($piece->words() < 20) {
                 $bad[] = $piece->id;
             }
         }
@@ -299,7 +304,7 @@ class ArticleGenerationService
             foreach ($serp->pieces as $piece) {
                 $existingTexts = $uniquePieces->except([$piece->id])->pluck('content')->toArray();
                 $unique = !$this->uniquenessService->hasDuplicates($piece->content, $existingTexts, 15, []);
-                if($unique) {
+                if ($unique) {
                     $uniquePieces->add($piece);
                 } else {
                     $serpIdsForDeletion[] = $piece->id;
@@ -382,5 +387,115 @@ class ArticleGenerationService
     {
         $this->headingGenerationService->generateHeadings($serp);
         $this->headingGenerationService->chooseHeadings($serp);
+    }
+
+    private function getBestSerpByEmbedding(?array $serpIds)
+    {
+        $refPieces = ReferenceTextPiece::query()
+            ->where('reference_text_id', '=', 1)
+            ->get();
+
+        /** @var ReferenceTextPiece $refPiece */
+        foreach ($refPieces as $refPiece) {
+            if (!$refPiece->embedding) {
+                $refPiece->embedding = TextGenerationService::embeddings([$refPiece->text])[0];
+                $refPiece->save();
+            }
+        }
+
+        $serps = Serp::query()->whereIn('id', $serpIds)->get();
+        /** @var Serp $serp */
+        foreach ($serps as $serp) {
+            $this->saveEmbeddings($serp);
+            $serp->refresh();
+        }
+
+        $results = [];
+        foreach ($serps as $serp) {
+            $results[$serp->id] = 0;
+
+            foreach ($serp->pieces as $piece) {
+                $distances = [];
+                foreach ($refPieces as $refPiece) {
+                    $distances[] = EmbeddingDistanceService::getDistance($piece->embedding, $refPiece->embedding);
+                }
+
+                $results[$serp->id] += min($distances);
+            }
+
+            $results[$serp->id] = $results[$serp->id] / $serp->pieces->count();
+        }
+
+        foreach ($results as $serpId => $distance) {
+            Serp::query()
+                ->where('id', '=', $serpId)
+                ->update(['distance_to_ref' => $distance]);
+        }
+
+        $bestDistance = min($results);
+
+        if($bestDistance > 0.68) {
+            return null;
+        }
+
+        return array_search($bestDistance, $results);
+    }
+
+    private function isGeneratedPieceGood($generatedPiece)
+    {
+        $words = count(explode(' ', $generatedPiece->content));
+        $wordsInSource = count(explode(' ', $generatedPiece->piece->content));
+        if ($words / $wordsInSource < 0.5) {
+            return false;
+        }
+
+        if (Helper::strpos_arr($generatedPiece->content, $this->badCharacters)) {
+            return false;
+        }
+
+        $uniqueFromOriginal = !$this->uniquenessService
+            ->hasDuplicates($generatedPiece->content, [$generatedPiece->piece->content], 15);
+
+        return $uniqueFromOriginal;
+    }
+
+    private function improveGeneratedPiece($generatedPiece)
+    {
+        $generatedPiece = $this->removeSentencesWithStopWords($generatedPiece);
+
+        if(Helper::isTextCaps($generatedPiece->content)) {
+            $generatedPiece->content = Helper::deCapitalizeText($generatedPiece->content);
+        }
+
+        $generatedPiece->content = str_replace('"', '', $generatedPiece->content);
+        $generatedPiece->save();
+    }
+
+    private function generatePiecesForSourcePiece(Piece $piece, Spell $spell)
+    {
+        $qty = $piece->generatedPieces->count();
+        $serp = $piece->serp;
+        $rewrittenTexts = TextGenerationService::generate($piece->content, $spell, self::QTY_OF_REWRITES);
+        foreach ($rewrittenTexts as $rewrittenText) {
+            $generatedPiece = new GeneratedPiece();
+            $generatedPiece->piece_id = $piece->id;
+            $generatedPiece->heading = $piece->heading;
+            $generatedPiece->keyword_id = $piece->keyword_id;
+            $generatedPiece->content = trim($rewrittenText);
+            $generatedPiece->serp_id = $serp->id;
+            $generatedPiece->save();
+
+            $generatedPiece->refresh();
+
+            $this->improveGeneratedPiece($generatedPiece);
+
+            if ($this->isGeneratedPieceGood($generatedPiece)) {
+                $qty++;
+            } else {
+                $generatedPiece->delete();
+            }
+        }
+
+        return $qty;
     }
 }

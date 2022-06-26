@@ -15,6 +15,7 @@
         <link rel="stylesheet" href="/fonts/flaticon/font/flaticon.css">
         <link rel="stylesheet" href="/css/aos.css">
         <link rel="stylesheet" href="/css/style.css">
+        <link rel="stylesheet" href="/css/app.css">
         <script src="/js/jquery-3.4.1.min.js"></script>
         <script src="/js/owl.carousel.min.js"></script>
 
@@ -28,7 +29,7 @@
             gtag('config', 'G-B0PM6PB57J');
         </script>
     </head>
-    <body>
+    <body class="ck-content">
 
     <noscript><div><img src="https://mc.yandex.ru/watch/84037588" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
     <!-- /Yandex.Metrika counter -->

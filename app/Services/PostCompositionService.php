@@ -19,19 +19,8 @@ class PostCompositionService {
             return $piece->chosen;
         });
 
-        $content = '';
-        $debugContent = '';
         foreach ($generatedPieces as $generatedPiece) {
-            $debugContent .= sprintf('<h2>ORIGINAL: %s</h2>', $generatedPiece->heading);
-            $debugContent .= sprintf('<h2>GENERATED: %s</h2>', $generatedPiece->chosen_heading);
-            $content .= sprintf('<h2>%s</h2>', $generatedPiece->chosen_heading);
-            $debugContent .= sprintf(
-                '<p>Original content: %s</p><p>Generated content: %s</p>',
-                $generatedPiece->piece->content,
-                $generatedPiece->content
-            );
-
-            $content .= sprintf('<p>%s</p>', $generatedPiece->content);
+            self::handlePieceContent($generatedPiece);
         }
 
         $post = GeneratedPost::query()
@@ -46,8 +35,6 @@ class PostCompositionService {
         $post->category_id = $post->category_id ?: ($category ? $category->id : null);
         $post->meta_title = $keyword->keyword;
         $post->title = $keyword->keyword;
-        $post->debug_content = $debugContent;
-        $post->content = $content;
         $post->published_at = now();
         $post->save();
 
@@ -57,6 +44,25 @@ class PostCompositionService {
             ->update(['generated_post_id' => $post->id]);
 
         return $post;
+    }
+
+
+    public static function handlePieceContent(GeneratedPiece $generatedPiece)
+    {
+        $generatedPiece->content = preg_replace(
+            '/20\d{2}.20\d{2}/',
+            sprintf('%s-%s', now()->year, now()->addYear()->year),
+            $generatedPiece->content
+        );
+
+        $generatedPiece->content = preg_replace(
+            sprintf('/(?!%s)20\d{2}/', now()->addYear()->year),
+            now()->year,
+            $generatedPiece->content
+        );
+
+        $generatedPiece->save();
+        return $generatedPiece;
     }
 
 }

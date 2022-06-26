@@ -36,14 +36,14 @@ class SerpScoringService {
     const FACTOR_POSITION = 'position';
     const FACTOR_WORDS = 'words';
     const FACTOR_DISTANCE_KEYWORD_TO_SERP_TITLE = 'distance';
-    const MIN_WORDS = 400;
+    const MIN_WORDS = 250;
     const BLACKLISTED_URLS = [
         'wemakescholars.com'
     ];
 
     public $valuesByFactor = [];
 
-    public function rank(Collection $serps)
+    public function rank(Collection $serps, $topX = 5)
     {
         $serps = $this->filterByWords($serps);
         $serps = $this->filterByUrl($serps);
@@ -80,8 +80,9 @@ class SerpScoringService {
             return null;
         }
 
-        $serpId = array_search(max($scoreSums), $scoreSums);
-        return $serpId;
+        arsort($scoreSums);
+        $winners = array_slice(array_keys($scoreSums), 0, $topX);
+        return $winners;
     }
 
     private function saveScoringData(Collection $serps)
@@ -120,7 +121,9 @@ class SerpScoringService {
     private function filterByWords(Collection $serps)
     {
         return $serps->filter(function (Serp $serp) {
-            return $this->words($serp) > self::MIN_WORDS;
+            $serp->words = $this->words($serp);
+            $serp->save();
+            return $serp->words > self::MIN_WORDS;
         });
     }
 

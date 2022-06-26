@@ -5,11 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\App;
 
 /**
  * @property string content
  * @property string chosen_heading
- * @property int original_piece_id
  * @property mixed original_heading
  * @property mixed id
  * @property mixed heading
@@ -19,6 +19,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property array|null $generated_headings
  * @property int $serp_id
  * @property boolean $chosen
+ * @property mixed $piece_id
+ * @property string image
  */
 class GeneratedPiece extends Model
 {
@@ -33,6 +35,11 @@ class GeneratedPiece extends Model
 
     public function piece(): BelongsTo
     {
-        return $this->belongsTo(Piece::class, 'original_piece_id');
+        return $this->belongsTo(Piece::class);
+    }
+
+    public function getImage()
+    {
+        return App::make('url')->to($this->image);
     }
 }

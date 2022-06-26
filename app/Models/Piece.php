@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 
 /**
@@ -17,6 +18,7 @@ use Illuminate\Support\Collection;
  * @property mixed chosen
  * @property mixed keyword_id
  * @property GeneratedPiece[]|Collection generatedPieces
+ * @property Serp $serp
  */
 class Piece extends Model
 {
@@ -41,8 +43,19 @@ class Piece extends Model
         return count(explode(' ', $this->content));
     }
 
-    public function generatedPieces()
+    /**
+     * @return HasMany
+     */
+    public function generatedPieces(): HasMany
     {
-        return $this->hasMany(GeneratedPiece::class, 'original_piece_id');
+        return $this->hasMany(GeneratedPiece::class);
+    }
+
+    /**
+     * @return BelongsTo
+     */
+    public function serp(): BelongsTo
+    {
+        return $this->belongsTo(Serp::class);
     }
 }

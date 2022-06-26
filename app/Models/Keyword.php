@@ -5,15 +5,21 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Collection;
 
 /**
  * @property Piece[]|Collection pieces
- * @property mixed id
- * @property mixed embedding
+ * @property int id
+ * @property array embedding
  * @property Serp[]|Collection serps
  * @property Collection|GeneratedPiece[] generatedPieces
- * @property mixed $keyword
+ * @property string $keyword
+ * @property HasMany $chosenGeneratedPieces
+ * @property string keyword_frase
+ * @property array additional_data
+ * @property GeneratedPost generatedPost
+ * @property string object_name
  */
 class Keyword extends Model
 {
@@ -24,7 +30,8 @@ class Keyword extends Model
     public $timestamps = false;
 
     public $casts = [
-        'embedding' => 'array'
+        'embedding' => 'array',
+        'additional_data' => 'array'
     ];
 
     /**
@@ -65,6 +72,11 @@ class Keyword extends Model
     {
         return $this->hasMany(GeneratedPiece::class)
             ->where('chosen', '=', 1);
+    }
+
+    public function generatedPost(): HasOne
+    {
+        return $this->hasOne(GeneratedPost::class);
     }
 
 }
