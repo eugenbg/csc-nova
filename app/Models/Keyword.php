@@ -79,4 +79,11 @@ class Keyword extends Model
         return $this->hasOne(GeneratedPost::class);
     }
 
+    public function hasAdditionalData(): bool
+    {
+        return isset($this->additional_data['website'])
+            || isset($this->additional_data['phone'])
+            || isset($this->additional_data['address']);
+    }
+
 }

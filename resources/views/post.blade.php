@@ -52,33 +52,38 @@
                         </div>
                     @endforeach
 
-                    <table class="table table-hover">
-                        <tbody>
-                            @if($post->keyword->additional_data['website'])
-                                <tr>
-                                    <td>Website</td>
-                                    <td>
-                                        <a rel="nofollow" target="_blank"
-                                           href="{{$post->keyword->additional_data['website']}}">
-                                            {{$post->keyword->additional_data['website']}}
-                                        </a>
-                                    </td>
-                                </tr>
-                            @endif
-                            @if($post->keyword->additional_data['phone'])
-                                <tr>
-                                    <td>Phone Number</td>
-                                    <td>{{$post->keyword->additional_data['phone']}}</td>
-                                </tr>
-                            @endif
-                            @if($post->keyword->additional_data['address'])
-                                <tr>
-                                    <td>Address</td>
-                                    <td>{{$post->keyword->additional_data['address']}}</td>
-                                </tr>
-                            @endif
-                        </tbody>
-                    </table>
+                    <div>
+                        @if($post->keyword->hasAdditionalData())
+                            <h2>Additional Info</h2>
+                            <table class="table table-hover">
+                                <tbody>
+                                @if($post->keyword->additional_data['website'])
+                                    <tr>
+                                        <td>Website</td>
+                                        <td>
+                                            <a rel="nofollow" target="_blank"
+                                               href="{{$post->keyword->additional_data['website']}}">
+                                                {{$post->keyword->additional_data['website']}}
+                                            </a>
+                                        </td>
+                                    </tr>
+                                @endif
+                                @if($post->keyword->additional_data['phone'])
+                                    <tr>
+                                        <td>Phone Number</td>
+                                        <td>{{$post->keyword->additional_data['phone']}}</td>
+                                    </tr>
+                                @endif
+                                @if($post->keyword->additional_data['address'])
+                                    <tr>
+                                        <td>Location</td>
+                                        <td>{{$post->keyword->additional_data['address']}}</td>
+                                    </tr>
+                                @endif
+                                </tbody>
+                            </table>
+                        @endif
+                    </div>
                 </article>
             @endif
 

@@ -13,7 +13,7 @@ class ParsePlacesData extends Command
      *
      * @var string
      */
-    protected $signature = 'places';
+    protected $signature = 'places {--keyword=}';
 
     /**
      * The console command description.
@@ -39,10 +39,16 @@ class ParsePlacesData extends Command
      */
     public function handle()
     {
-        $keywords = Keyword::query()
-            ->has('generatedPost')
-            ->whereNull('additional_data')
-            ->get();
+        $builder = Keyword::query()
+            ->has('generatedPost');
+
+        if($id = $this->option('keyword')) {
+            $builder->where('id', '=', $id);
+        } else {
+            $builder->whereNull('additional_data');
+        }
+
+        $keywords = $builder->get();
 
         /** @var Keyword $keyword */
         foreach ($keywords as $keyword) {
