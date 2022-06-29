@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\App;
  * @property mixed id
  * @property mixed heading
  * @property mixed keyword_id
+ * @property Keyword keyword
  * @property Piece|null $piece
  * @property array $embedding
  * @property array|null $generated_headings
@@ -21,6 +22,7 @@ use Illuminate\Support\Facades\App;
  * @property boolean $chosen
  * @property mixed $piece_id
  * @property string image
+ * @property string $formatted_content
  */
 class GeneratedPiece extends Model
 {
@@ -41,5 +43,13 @@ class GeneratedPiece extends Model
     public function getImage()
     {
         return App::make('url')->to($this->image);
+    }
+
+    /**
+     * @return BelongsTo
+     */
+    public function keyword(): BelongsTo
+    {
+        return $this->belongsTo(Keyword::class);
     }
 }

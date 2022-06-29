@@ -97,6 +97,10 @@ class CopyFraseData extends Command
         $keywordModel = new Keyword;
         $embedding = TextGenerationService::embeddings([$data['keyword']]);
         $keywordModel->embedding = $embedding[0];
+        if(strpos(mb_strtolower($data['keyword']), 'scholarships') !== false) {
+            $data['object_name'] = ucwords(trim(str_replace('scholarships', '', mb_strtolower($data['keyword']))));
+        }
+
         $keywordModel->fill($data)->save();
         $groupedPieces = $pieces->groupBy('serp_id');
 

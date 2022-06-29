@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddImageColToGeneratedPieces extends Migration
+class RemoveContentColFromGeneratedPosts extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,8 @@ class AddImageColToGeneratedPieces extends Migration
      */
     public function up()
     {
-        Schema::table('generated_pieces', function (Blueprint $table) {
-            $table->string('image')->nullable();
+        Schema::table('generated_posts', function (Blueprint $table) {
+            $table->dropColumn('content');
         });
     }
 
@@ -25,8 +25,8 @@ class AddImageColToGeneratedPieces extends Migration
      */
     public function down()
     {
-        Schema::table('generated_pieces', function (Blueprint $table) {
-            $table->dropColumn('image');
+        Schema::table('generated_posts', function (Blueprint $table) {
+            //
         });
     }
 }

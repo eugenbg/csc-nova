@@ -26,7 +26,12 @@ class GeneratedPost extends Post
 
     public function words()
     {
-        return Helper::words($this->content);
+        $words = 0;
+        foreach ($this->chosenGeneratedPieces as $chosenGeneratedPiece) {
+            $words += Helper::words($chosenGeneratedPiece->content);
+        }
+
+        return $words;
     }
 
     /**

@@ -2,13 +2,11 @@
 
 namespace App\Services;
 
+use App\Helper;
 use App\Models\GeneratedPiece;
-use App\Models\Keyword;
-use App\Models\Piece;
 use App\Models\Serp;
 use App\Models\Spell;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Collection;
 
 class HeadingGenerationService {
 
@@ -20,6 +18,9 @@ class HeadingGenerationService {
     const HEADING_SPELL_ID = 12;
     const HEADINGS_GENERATE_QTY = 5;
     const MAX_WORDS = 10;
+    const MAX_TRIES = 3;
+
+    public $try = 0;
 
     /**
      * @var array
@@ -31,12 +32,9 @@ class HeadingGenerationService {
         $this->uniquenessService = $uniquenessService;
     }
 
-    public function generateHeading(GeneratedPiece $generatedPiece, $otherHeadings = [])
-    {
-    }
-
     public function generateHeadings(Serp $serp)
     {
+        $this->try++;
         $allHeadings = [];
         $originalHeadings = [];
         $generatedPieces = $serp->generatedPieces->filter(function (GeneratedPiece  $generatedPiece) {
@@ -68,8 +66,13 @@ class HeadingGenerationService {
         $allHeadings = array_unique($allHeadings);
         $allHeadings = array_merge($allHeadings, $originalHeadings);
         $allHeadings = array_combine($allHeadings, $allHeadings);
-
         $this->embeddings = TextGenerationService::embeddings($allHeadings);
+
+        if(!count($allHeadings) && $this->try < self::MAX_TRIES) {
+            Helper::log('could not generate headings, trying once again, waiting 20 seconds');
+            sleep(20);
+            $this->generateHeadings($serp);
+        }
     }
 
     public function chooseHeadings(Serp $serp)

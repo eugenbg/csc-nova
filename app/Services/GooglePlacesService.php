@@ -12,13 +12,14 @@ class GooglePlacesService
 {
 
     const KEY_PARAM = 'GOOGLE_CLOUD_API_KEY';
+    private static $client;
 
     public static function saveKeywordData(Keyword $keyword)
     {
         $objectName = $keyword->object_name;
-        $client = new Client();
+        self::$client = new Client();
         $url = 'https://maps.googleapis.com/maps/api/place/findplacefromtext/json';
-        $response = $client->get($url, [
+        $response = self::$client->get($url, [
             'query' => [
                 'input' => $objectName,
                 'inputtype' => 'textquery',
@@ -31,7 +32,7 @@ class GooglePlacesService
 
         if ($placeId) {
             $url = 'https://maps.googleapis.com/maps/api/place/details/json';
-            $response = $client->get($url, [
+            $response = self::$client->get($url, [
                 'query' => [
                     'place_id' => $placeId,
                     'key' => env(self::KEY_PARAM),
@@ -47,42 +48,8 @@ class GooglePlacesService
             ];
             $keyword->save();
 
-            $qty = min($keyword->chosenGeneratedPieces->count(), 3);
-            $i = 0;
-            $j = 0;
-            while($i < $qty) {
-                $photoData = $keyword->additional_data['photos'][$i];
-                if($photoData['width'] / $photoData['height'] < 1.2) {
-                    $i++;
-                    continue;
-                }
-
-                $j++;
-                /** @var GeneratedPiece $generatedPiece */
-                $generatedPiece = $keyword->chosenGeneratedPieces->get($j);
-                if(!$generatedPiece) {
-                    break;
-                }
-
-                $i++;
-                $url = 'https://maps.googleapis.com/maps/api/place/photo';
-                $response = $client->get($url, [
-                    'query' => [
-                        'photo_reference' => $photoData['photo_reference'],
-                        'key' => env(self::KEY_PARAM),
-                        'maxwidth' => 300
-                    ],
-                ]);
-
-                $fileExtension = self::getImgFileExtension($response);
-                $filePath = '/uploads/'. Str::slug($objectName.'-'. $i) . $fileExtension;
-                file_put_contents(
-                    public_path() . $filePath,
-                    $response->getBody()
-                );
-
-                $generatedPiece->image = $filePath;
-                $generatedPiece->save();
+            if($keyword->additional_data['photos']) {
+                self::savePhotos($keyword);
             }
 
             return true;
@@ -122,6 +89,47 @@ class GooglePlacesService
                 return '.png';
             default:
                 return '.jpg';
+        }
+    }
+
+    private static function savePhotos(Keyword $keyword)
+    {
+        $qty = min($keyword->chosenGeneratedPieces->count(), 3);
+        $i = 0;
+        $j = 0;
+        while($i < $qty) {
+            $photoData = $keyword->additional_data['photos'][$i];
+            if($photoData['width'] / $photoData['height'] < 1.2) {
+                $i++;
+                continue;
+            }
+
+            /** @var GeneratedPiece $generatedPiece */
+            $generatedPiece = $keyword->chosenGeneratedPieces->get($j);
+            if(!$generatedPiece) {
+                break;
+            }
+
+            $j++;
+            $i++;
+            $url = 'https://maps.googleapis.com/maps/api/place/photo';
+            $response = self::$client->get($url, [
+                'query' => [
+                    'photo_reference' => $photoData['photo_reference'],
+                    'key' => env(self::KEY_PARAM),
+                    'maxwidth' => 300
+                ],
+            ]);
+
+            $fileExtension = self::getImgFileExtension($response);
+            $filePath = '/uploads/'. Str::slug($keyword->object_name.'-'. $i) . $fileExtension;
+            file_put_contents(
+                public_path() . $filePath,
+                $response->getBody()
+            );
+
+            $generatedPiece->image = $filePath;
+            $generatedPiece->save();
         }
     }
 }

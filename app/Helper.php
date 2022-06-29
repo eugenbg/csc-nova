@@ -4,6 +4,8 @@ namespace App;
 
 class Helper {
 
+    public static $command;
+
     public static function words(string $text): int
     {
         return count(explode(' ', $text));
@@ -41,6 +43,16 @@ class Helper {
 
         $sentences[0] = ucfirst($sentences[0]);
         return implode('. ', $sentences);
+    }
+
+    public static function initCommandLogger($command)
+    {
+        self::$command = $command;
+    }
+
+    public static function log(...$args)
+    {
+        return self::$command->info(sprintf(...$args));
     }
 
 }

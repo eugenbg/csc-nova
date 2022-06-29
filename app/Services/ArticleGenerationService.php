@@ -62,74 +62,82 @@ class ArticleGenerationService
         'click',
         'form below',
         '__',
-        'apply here'
+        'apply here',
+        'register now',
+        'create account',
+        'create an account',
     ];
 
     private $badCharacters = ['{', '}', '/', '\\', '~'];
 
-    public function generateArticle(Keyword $keyword, $i, $loggerFn)
+    public function generateArticle(Keyword $keyword, $i)
     {
+        Helper::log('keyword ' . $keyword->keyword);
+        Helper::log('keyword ID ' . $keyword->id);
+
         GeneratedPiece::query()
             ->where('keyword_id', '=', $keyword->id)
             ->delete();
 
+
         $start = now();
         $this->cleanPiecesForKeyword($keyword);
-        $loggerFn('choosing');
+        Helper::log('choosing source');
         /** @var Serp $serp */
         $serp = $this->chooseBestSource($keyword);
         if ($serp) {
-            $loggerFn('keyword: %s', $keyword->keyword);
-            $loggerFn('serp title: %s', $serp->title);
-            $loggerFn('serp  url: %s', $serp->url);
-            $loggerFn('scores');
+            Helper::log('keyword: %s', $keyword->keyword);
+            Helper::log('serp title: %s', $serp->title);
+            Helper::log('serp  url: %s', $serp->url);
+            Helper::log('scores');
             foreach ($serp->scores as $scoreName => $score) {
-                $loggerFn('%s: %s', $scoreName, $score);
+                Helper::log('%s: %s', $scoreName, $score);
             }
-            $loggerFn('----------');
-            $loggerFn('----------');
+            Helper::log('----------');
+            Helper::log('----------');
         } else {
-            $loggerFn('COULD NOT FIND A GOOD SOURCE FOR REWRITE');
+            Helper::log('COULD NOT FIND A GOOD SOURCE FOR REWRITE');
         }
 
         if ($serp) {
-            $loggerFn('rewritePieces');
+            Helper::log('rewritePieces');
             $start = now();
             $this->rewritePieces($serp);
             $serp->refresh();
-            $loggerFn('rewritePieces took %s sec', now()->diffInMilliseconds($start) / 1000);
+            Helper::log('rewritePieces took %s sec', now()->diffInMilliseconds($start) / 1000);
 
-            $loggerFn('cleanGeneratedPiecesForSerp');
+            Helper::log('cleanGeneratedPiecesForSerp');
             $serp->refresh();
             $this->saveEmbeddings($serp);
-            $loggerFn('chooseGeneratedPieces');
+            Helper::log('chooseGeneratedPieces');
             $serp->refresh();
             $this->chooseGeneratedPieces($serp);
 
             $keyword->refresh();
             $serp->refresh();
 
-            $loggerFn('generateHeadings');
+            Helper::log('generateHeadings');
             $this->generateHeadings($serp);
             $keyword->refresh();
 
-            $loggerFn('finalizePost');
+            Helper::log('finalizePost');
             FinalizingService::finalizePost($keyword);
 
             $category = Category::query()->find(15);
             $generatedPost = PostCompositionService::saveGeneratedPost($keyword, $category);
 
+            Helper::log('saving data from google places');
             $keyword->refresh();
             GooglePlacesService::saveKeywordData($keyword);
 
+            Helper::log('lengthenPost');
             $initialLength = $generatedPost->words();
             $desiredLength = max(round($initialLength * 1.3), 600);
 
-            $loggerFn('lengthenPost');
             $i = 0;
             while ($generatedPost->words() < $desiredLength && $i >= 3) {
                 $i++;
-                $loggerFn('lengthening the post, current length %s words', $generatedPost->words());
+                Helper::log('lengthening the post, current length %s words', $generatedPost->words());
                 FinalizingService::lengthenPost($keyword);
                 $generatedPost->refresh();
             }
@@ -139,7 +147,7 @@ class ArticleGenerationService
         }
 
         $timeTaken = $start->diffInMilliseconds(now()) / 1000;
-        $loggerFn('took %s seconds', $timeTaken);
+        Helper::log('took %s seconds', $timeTaken);
     }
 
     public function chooseGeneratedPieces(Serp $serp)
@@ -164,28 +172,6 @@ class ArticleGenerationService
             ->update(['chosen' => true]);
     }
 
-    private function cleanGeneratedPiecesForSerp(Serp $serp)
-    {
-        $good = new Collection();
-
-        $serp->load(['generatedPieces', 'generatedPieces.piece']);
-
-        foreach ($serp->generatedPieces as $generatedPiece) {
-
-            $this->improveGeneratedPiece($generatedPiece);
-
-            if ($this->isGeneratedPieceGood($generatedPiece)) {
-                $generatedPiece->save();
-                $good->add($generatedPiece);
-            }
-        }
-
-        GeneratedPiece::query()
-            ->whereNotIn('id', $good->pluck('id')->toArray())
-            ->where('serp_id', '=', $serp->id)
-            ->delete();
-    }
-
     private function rewritePieces(Serp $serp)
     {
         /** @var Spell $spell */
@@ -199,10 +185,7 @@ class ArticleGenerationService
             while($qty < 2 && $i <= 3) {
                 $i++;
                 $qty = $this->generatePiecesForSourcePiece($piece, $spell);
-                $a = 0;
             }
-
-            $b = 0;
         }
     }
 
@@ -445,7 +428,7 @@ class ArticleGenerationService
     {
         $words = count(explode(' ', $generatedPiece->content));
         $wordsInSource = count(explode(' ', $generatedPiece->piece->content));
-        if ($words / $wordsInSource < 0.5) {
+        if ($words / $wordsInSource < 0.3) {
             return false;
         }
 

@@ -56,6 +56,9 @@ class GeneratedPost extends Resource
             Text::make('link', function () {
                 return sprintf('<a href="%s" target="_blank">link</a>', env('APP_URL') . $this->slug);
             })->asHtml(),
+            Text::make('debug', function () {
+                return sprintf('<a href="%s?debug=1" target="_blank">debug</a>', env('APP_URL') . $this->slug);
+            })->asHtml(),
             Text::make('source', function () {
                 return $this->source_url ? sprintf('<a href="%s" target="_blank">source</a>', $this->source_url) : 'no data';
             })->asHtml()

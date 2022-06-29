@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Helper;
 use App\Models\Keyword;
 use App\Services\ArticleGenerationService;
 use Illuminate\Console\Command;
@@ -64,11 +65,10 @@ class MotherOfAllGenerators extends Command
 
         $this->info(sprintf('got %s keywords, starting...', $keywords->count()));
 
-        $command = $this;
+        Helper::initCommandLogger($this);
+
         foreach ($keywords as $key => $keyword) {
-            $this->service->generateArticle($keyword, $key, function(...$args) use ($command) {
-                $command->info(sprintf(...$args));
-            });
+            $this->service->generateArticle($keyword, $key);
         }
 
         return 0;
