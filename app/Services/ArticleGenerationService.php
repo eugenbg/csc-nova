@@ -50,6 +50,11 @@ class ArticleGenerationService
         'search',
         'event',
         'recently asked',
+        'account',
+        'register',
+        'profile',
+        'idp',
+        'portal'
     ];
 
     public function __construct(UniquenessTestingService $uniquenessService, HeadingGenerationService $headingGenerationService)
@@ -66,6 +71,7 @@ class ArticleGenerationService
         'register now',
         'create account',
         'create an account',
+        'profile',
     ];
 
     private $badCharacters = ['{', '}', '/', '\\', '~'];
@@ -106,7 +112,6 @@ class ArticleGenerationService
             $serp->refresh();
             Helper::log('rewritePieces took %s sec', now()->diffInMilliseconds($start) / 1000);
 
-            Helper::log('cleanGeneratedPiecesForSerp');
             $serp->refresh();
             $this->saveEmbeddings($serp);
             Helper::log('chooseGeneratedPieces');
@@ -236,8 +241,9 @@ class ArticleGenerationService
 
         /** @var SerpScoringService $scoringService */
         $scoringService = resolve(SerpScoringService::class);
+        $this->validateTitleEmbeddingsExist($serps);
         $serpIds = $scoringService->rank($serps);
-        if (!count($serpIds)) {
+        if (!$serpIds || !count($serpIds)) {
             return null;
         }
 
@@ -480,5 +486,25 @@ class ArticleGenerationService
         }
 
         return $qty;
+    }
+
+    private function validateTitleEmbeddingsExist(Collection $serps)
+    {
+        $serpTitles = [];
+        /** @var Serp $serp */
+        foreach ($serps as $serp) {
+            if(!$serp->title_embedding) {
+                $serpTitles[$serp->id] = $serp->title;
+            }
+        }
+
+        $embeddings = TextGenerationService::embeddings($serpTitles);
+        foreach ($embeddings as $serpId => $embedding) {
+            Serp::query()
+                ->where('id', '=', $serpId)
+                ->update([
+                    'title_embedding' => json_encode($embedding)
+                ]);
+        }
     }
 }

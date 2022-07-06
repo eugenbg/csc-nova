@@ -17,7 +17,7 @@ class HeadingGenerationService {
 
     const HEADING_SPELL_ID = 12;
     const HEADINGS_GENERATE_QTY = 5;
-    const MAX_WORDS = 10;
+    const MAX_WORDS = 15;
     const MAX_TRIES = 3;
 
     public $try = 0;
@@ -56,7 +56,7 @@ class HeadingGenerationService {
                 unset($generatedHeadings[$key]);
             }
 
-            $generatedPiece->generated_headings = $generatedHeadings;
+            $generatedPiece->generated_headings = array_values($generatedHeadings);
             $generatedPiece->save();
 
             $allHeadings = array_merge($allHeadings, $generatedHeadings);
@@ -77,6 +77,7 @@ class HeadingGenerationService {
 
     public function chooseHeadings(Serp $serp)
     {
+        $serp->refresh();
         $generatedPieces = $serp->generatedPieces->filter(function (GeneratedPiece  $generatedPiece) {
             return $generatedPiece->chosen;
         });
@@ -110,6 +111,11 @@ class HeadingGenerationService {
                     'distance_content' => $distanceContent,
                     'sum_distance' => $distanceHeading + $distanceContent / 2
                 ];
+            }
+
+            if(!count($payload)) {
+                $generatedPiece->delete();
+                continue;
             }
 
             $sorted = Arr::sort($payload, 'sum_distance');

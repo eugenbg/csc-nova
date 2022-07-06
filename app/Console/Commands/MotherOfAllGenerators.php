@@ -6,6 +6,7 @@ use App\Helper;
 use App\Models\Keyword;
 use App\Services\ArticleGenerationService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Artisan;
 
 class MotherOfAllGenerators extends Command
 {
@@ -49,6 +50,7 @@ class MotherOfAllGenerators extends Command
      */
     public function handle()
     {
+        Artisan::call('index-slugs');
         $id = $this->option('keyword');
         $from = $this->option('from');
         $to = $this->option('to');

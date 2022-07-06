@@ -6,14 +6,21 @@ class EmbeddingDistanceService {
 
     public static function getDistance($left, $right): float
     {
+        if(!is_array($left)) {
+            $a = 0;
+            return 1;
+        }
         $sum = 0;
         foreach ($left as $key => $number1) {
+            if(!isset($right[$key])) {
+                $a = 0;
+                return 1;
+            }
             $number2 = $right[$key];
             $sum += ($number1 - $number2) ** 2;
         }
 
         return sqrt($sum);
-
     }
 
     public static function getCosineSimilarity($left, $right): float

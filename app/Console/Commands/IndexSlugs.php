@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\GeneratedPost;
 use App\Models\Post;
 use App\Models\Category;
 use App\Models\ChinaUniversity;
@@ -52,6 +53,15 @@ class IndexSlugs extends Command
             $article['type'] = Post::class;
         }
 
+        $generatedPosts = GeneratedPost::query()
+            ->select(['id as object_id', 'slug'])
+            ->get()
+            ->toArray();
+
+        foreach ($generatedPosts as &$generatedPost) {
+            $generatedPost['type'] = GeneratedPost::class;
+        }
+
         $cats = Category::query()
             ->select(['id as object_id', 'slug'])
             ->get()
@@ -70,6 +80,6 @@ class IndexSlugs extends Command
             $uni['type'] = ChinaUniversity::class;
         }
 
-        Slug::query()->insert(array_merge($articles, $cats, $unis));
+        Slug::query()->insert(array_merge($articles, $cats, $unis, $generatedPosts));
     }
 }
