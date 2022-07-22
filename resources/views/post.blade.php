@@ -13,7 +13,7 @@
             <div class="meta">
                 <span>{{$post->createdAtFormatted()}}</span>
                 <span>&bullet;</span>
-                <span>{{round(strlen($post->content) / 1500)}} minutes read</span>
+                <span>{{round(strlen($post->content) / 1000)}} minutes read</span>
             </div>
         </div>
     </div>
@@ -25,17 +25,14 @@
             @if($debug)
                 @foreach($post->chosenGeneratedPieces as $piece)
                     <div class="clearfix">
-                        <h2>Generated heading: {{$piece->chosen_heading}}</h2>
-                        <h2>Original heading: {{$piece->piece->heading}}</h2>
+                        <h2>Generated heading: {{$piece->chosen_heading ?? 'no heading'}}</h2>
                         @if($piece->image)
                             <figure class="image image-style-align-left">
                                 <img src="{{$piece->getImage()}}"/>
                             </figure>
                         @endif
-                        <p>Generated content: {!! $piece->formatted_content !!}</p>
-                        <p>Generated pre: <br/><pre>{{$piece->content}}</pre></p>
-                        <p>Original content: <br/><pre>{{$piece->piece->content}}</pre></p>
-                        <p>Generated Piece ID: <br/><pre>{{$piece->id}}</pre></p>
+                        <p>Generated content: {!! $piece->content !!}</p>
+                        <p>Original content: <br/><pre>{{$piece->original_content}}</pre></p>
                     </div>
                 @endforeach
             @else
@@ -48,12 +45,12 @@
                                     <img src="{{$piece->getImage()}}"/>
                                 </figure>
                             @endif
-                            <p>{!! $piece->formatted_content !!}</p>
+                            <p>{!! $piece->content !!}</p>
                         </div>
                     @endforeach
 
                     <div>
-                        @if($post->keyword->hasAdditionalData())
+                        @if($post->keyword && $post->keyword->hasAdditionalData())
                             <h2>Additional Info</h2>
                             <table class="table table-hover">
                                 <tbody>

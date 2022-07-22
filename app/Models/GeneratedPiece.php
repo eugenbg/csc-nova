@@ -22,7 +22,9 @@ use Illuminate\Support\Facades\App;
  * @property boolean $chosen
  * @property mixed $piece_id
  * @property string image
- * @property string $formatted_content
+ * @property int|mixed $generated_post_id
+ * @property mixed $original_content
+ * @property mixed|string $type
  */
 class GeneratedPiece extends Model
 {

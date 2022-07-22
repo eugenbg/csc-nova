@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Helper;
+
 class UniquenessTestingService
 {
     const HASH_DIVIDER = 25;
@@ -11,7 +13,6 @@ class UniquenessTestingService
     private $stop_words = [];
 
     private $stop_symbols = [];
-
 
     private $shingle_length = 2;
 
@@ -118,7 +119,7 @@ class UniquenessTestingService
      * @param null $shingleLength
      * @return array|false|string
      */
-    public function run($text1, $text2, $shingleLength = null)
+    public function run($text1, $text2, $shingleLength = 2)
     {
         if($shingleLength) {
             $this->shingle_length = $shingleLength;
@@ -153,11 +154,44 @@ class UniquenessTestingService
     private function compareData($shingles1, $shingles2)
     {
         $intersect = array_intersect($shingles1, $shingles2);
+        $intersectionWordCount = [];
+        foreach ($intersect as $item) {
+            $intersectionWordCount[$item] = Helper::words($item);
+        }
         $merge = array_unique(array_merge($shingles1, $shingles2));
 
         $diff = round((count($intersect) / count($merge)) / 0.01, 2);
 
         return $diff;
+    }
+
+    public function getIntersectingShingles($text1, $text2, $shingleSize)
+    {
+        $this->setShingleLength($shingleSize);
+        $text1 = $this->canonizeText($text1);
+        $text2 = $this->canonizeText($text2);
+        $shingles1 = $this->populateShingles($text1, false);
+        $shingles2 = $this->populateShingles($text2, false);
+
+        return array_intersect($shingles1, $shingles2);
+    }
+
+    public function getMaxIntersectingShingleSize($text1, $text2)
+    {
+        $qties = [];
+        foreach (range(2, 10) as $size) {
+            $qties[$size] = $this->getIntersectingShingles($text1, $text2, $size);
+            try {
+                if(count($qties[$size]) == 0 && (!isset($qties[$size - 1]) || $qties[$size - 1] > 0)) {
+                    return ['size' => $size - 1, 'max_size_shingles' => $qties[$size - 1]];
+                }
+            } catch (\Exception $exception) {
+                $a = 0;
+                $a++;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -172,7 +206,7 @@ class UniquenessTestingService
      * @param $text
      * @return mixed|string
      */
-    private function canonizeText($text)
+    public function canonizeText($text)
     {
         $text = trim($text);
         $text = mb_strtolower($text);
@@ -260,7 +294,7 @@ class UniquenessTestingService
      * @param $text
      * @return array
      */
-    public function populateShingles($text)
+    public function populateShingles($text, $hash = true)
     {
         $elements = explode(" ", $text);
 
@@ -285,7 +319,11 @@ class UniquenessTestingService
             $shingles_hash[] = crc32($shingle);
         }
 
-        return $shingles_hash;
+        if($hash) {
+            return $shingles_hash;
+        }
+
+        return $shingles;
     }
 
 }

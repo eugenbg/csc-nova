@@ -25,6 +25,7 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|Spell whereTitle($value)
  * @mixin \Eloquent
  * @property string $presence_penalty
+ * @property mixed $stop_sequences
  * @method static \Illuminate\Database\Eloquent\Builder|Spell whereFrequencyPenalty($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Spell wherePresencePenalty($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Spell wherePrompt($value)
@@ -35,6 +36,9 @@ use Illuminate\Database\Eloquent\Model;
 class Spell extends Model
 {
     public $timestamps = false;
+
+    protected $casts = [
+    ];
 
     public static $engines = [
         'ada',

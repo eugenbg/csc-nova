@@ -3,10 +3,9 @@
 namespace App\Models;
 
 use App\Models\Slug;
-use Cviebrock\EloquentSluggable\Sluggable;
-use Cviebrock\EloquentSluggable\SluggableScopeHelpers;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Ramsey\Uuid\Uuid;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 
 /**
@@ -37,21 +36,30 @@ class SluggableModel extends Model
 
         parent::save($options);
 
-        $slugModel = Slug::where('slug', '=', $this->slug)->first();
-        if(!$slugModel) {
-            $slugModel = new Slug();
-            $slugModel->type = get_class($this);
-            $slugModel->object_id = $this->id;
-            $slugModel->slug = $this->slug;
-            $slugModel->save();
-        }
-
-        if($slugModel
-            && ($slugModel->object_id != $this->id || $slugModel->type != get_class($this))
-        ) {
-            throw new BadRequestException('This slug is already taken');
-        }
+        $this->slug = $this->getFreeSlug($this->slug);
+        $slugModel = new Slug();
+        $slugModel->type = get_class($this);
+        $slugModel->object_id = $this->id;
+        $slugModel->slug = $this->slug;
+        $slugModel->save();
 
         return parent::save($options);
+    }
+
+    public function cleanSlugs(string $title)
+    {
+        \App\Models\Slug::query()
+            ->where('slug', '=', Str::slug($title))
+            ->delete();
+    }
+
+    private function getFreeSlug(string $slug)
+    {
+        $exists = \App\Models\Slug::query()->where('slug', '=', $slug)->exists();
+        if($exists) {
+            return $slug . '-' . Uuid::uuid4();
+        }
+
+        return $slug;
     }
 }

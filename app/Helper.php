@@ -2,7 +2,8 @@
 
 namespace App;
 
-class Helper {
+class Helper
+{
 
     public static $command;
 
@@ -22,11 +23,11 @@ class Helper {
 
     public static function isTextCaps(string $text)
     {
-        $text = preg_replace( '/\W/', '', $text);
+        $text = preg_replace('/\W/', '', $text);
         $words = explode(' ', $text);
         $qtyCaps = 0;
         foreach ($words as $word) {
-            if(ctype_upper($word)) {
+            if (ctype_upper($word)) {
                 $qtyCaps++;
             }
         }
@@ -55,4 +56,33 @@ class Helper {
         return self::$command->info(sprintf(...$args));
     }
 
+    public static function csvToArray($filepath)
+    {
+        $csvRows = array_map('str_getcsv', file($filepath));
+        $csvHeader = array_shift($csvRows);
+        $data = [];
+        foreach ($csvRows as $row) {
+            $data[] = array_combine($csvHeader, $row);
+        }
+
+        return $data;
+    }
+
+    public static function arrayToCsv($file_name, $arr)
+    {
+        $has_header = false;
+
+        foreach ($arr as $c) {
+
+            $fp = fopen($file_name, 'a');
+
+            if (!$has_header) {
+                fputcsv($fp, array_keys($c));
+                $has_header = true;
+            }
+
+            fputcsv($fp, $c);
+            fclose($fp);
+        }
+    }
 }

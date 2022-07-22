@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property mixed $slug
  * @property mixed $source_url
  * @property GeneratedPiece[] chosenGeneratedPieces
+ * @property mixed $local_category
  */
 class GeneratedPost extends Post
 {

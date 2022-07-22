@@ -3,6 +3,7 @@
 namespace App\Nova;
 
 use App\Nova\Actions\TestSpell;
+use App\Services\TextGenerationService;
 use Illuminate\Http\Request;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Select;
@@ -60,6 +61,8 @@ class Spell extends Resource
                 ->showOnIndex(false),
             Text::make(__('presence_penalty'), 'presence_penalty')
                 ->showOnIndex(false),
+            Text::make(__('STOP SEQUENCES JSON'), 'stop_sequences')
+                ->showOnIndex(false),
             Select::make(__('engine'), 'engine')
                 ->options([
                     'ada' => 'ada',
@@ -68,6 +71,8 @@ class Spell extends Resource
                     'curie-instruct-beta' => 'curie-instruct-beta',
                     'davinci' => 'davinci',
                     'davinci-instruct-beta' => 'davinci-instruct-beta',
+                    'davinci:ft-personal-2022-07-14-10-12-57' => 'Davinci Trained Rewrite',
+                    'curie:ft-personal-2022-07-14-10-14-25' => 'Curie Trained Rewrite',
                 ])
                 ->showOnIndex(true),
         ];

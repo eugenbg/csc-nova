@@ -8,6 +8,7 @@ use App\Models\ChinaUniImage;
 use App\Models\ChinaUniversity;
 use App\Models\Post;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class HomeController
 {
@@ -36,4 +37,23 @@ class HomeController
         ]);
     }
 
+    public function ft()
+    {
+        $pairs = DB::table('ft_pieces')
+            ->where('unique', '<', 6)
+            ->get();
+
+        return view('test', [
+            'pairs' => $pairs,
+        ]);
+    }
+
+    public function choose($id)
+    {
+        DB::table('ft_pieces')
+            ->where('id', '=', $id)
+            ->update(['chosen' => 1]);
+
+        return 1;
+    }
 }
